@@ -11,7 +11,7 @@ app.use(express.json());
 app.use(cors());
 
 // Routes
-app.use("/api/scenario", scenarioRoutes);
+app.use("/api/scenarios", scenarioRoutes);
 
 app.get("/health", (req, res) => {
     res.status(200).json({ message: "Server is running." });

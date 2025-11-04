@@ -1,5 +1,5 @@
 import { chat } from "./genaiClient.js";
-import { k6Template } from "./k6Template.js";
+import { k6Template } from "./k6Template_scenarios.js";
 import { PromptTemplate } from "@langchain/core/prompts";
 import fs from "fs";
 import dotenv from "dotenv";
@@ -31,7 +31,7 @@ const MANDATORY_FIELDS_MAP = {
   "externally-controlled": ["exec", "maxVUs"],
 };
 
-export async function generateK6Script(data) {
+export async function K6Scriptgenerate(data) {
   const { config, scenarios } = data;
 
   // ✅ Step 1: Validate mandatory fields per executor type

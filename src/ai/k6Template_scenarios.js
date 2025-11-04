@@ -1,8 +1,6 @@
 export const k6Template = `
 You are an expert K6 performance engineer. Generate a **production-ready K6 JavaScript script (ES6)** that meets the following specification.
 
----
-
 1. General Requirements
 - The script must include **scenarios**, **thresholds**, **setup/teardown**, and **summary reports**.
 - Use the provided JSON configuration values as input variables:
