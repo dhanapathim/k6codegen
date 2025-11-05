@@ -10,7 +10,12 @@ dotenv.config();
 // Initialize Express
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: "*", // Allowed origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false}
+));
 
 // ✅ Log all HTTP requests using Morgan + Winston
 app.use(
@@ -38,6 +43,6 @@ app.use((err, req, res, next) => {
 
 // ✅ Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   logger.info(`🚀 Server started on port ${PORT}`);
 });

@@ -1,0 +1,324 @@
+openapi: 3.1.0
+info:
+  title: Scenario Load & Test Config APIs
+  version: 1.0.0
+  description: |
+    API specification for managing performance test configurations and scenario load definitions.
+ 
+servers:
+  - url: http://localhost:3000/api/
+    description: Local development server
+ 
+paths:
+  /scenarios/load:
+    post:
+      summary: Create scenario load configurations
+      description: Defines multiple scenario load configurations with associated execution parameters.
+      operationId: createScenarioLoads
+      tags:
+        - Scenario Loads
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScenarioLoadRequest"
+            example:
+              scenarios:
+                - virtualUser: "5"
+                  startTime: "0"
+                  name: "load_50"
+                - virtualUser: "10"
+                  startTime: "5m"
+                  name: "load_100"
+                - virtualUser: "30"
+                  startTime: "10m"
+                  name: "load_300"
+                - virtualUser: "100"
+                  startTime: "15m"
+                  name: "load_1000"
+              commonFields:
+                htmlReportName: "data"
+                htmlReportFilePath: "c://xyz/k6.html"
+                executor: "constant-vus"
+                iterator: 1
+                swaggerFile: "c://xyz/swagger.yaml"
+                userInstructions: >
+                  Creates a new hive by submitting hive details to the server.
+                  Retrieves hive details using its unique ID.
+                  Removes a hive record permanently from the system using its ID.
+                apis:
+                  - id: "post-/service/api/hive/v1/hive"
+                    pathName: "/service/api/hive/v1/hive"
+                    description: "Creates a new hive"
+                    method: "POST"
+                  - id: "get-/service/api/hive/v1/hive/{hiveID}"
+                    pathName: "/service/api/hive/v1/hive/{hiveID}"
+                    description: "Retrieves hive details"
+                    method: "GET"
+                  - id: "delete-/service/api/hive/v1/hive/{hiveID}"
+                    pathName: "/service/api/hive/v1/hive/{hiveID}"
+                    description: "Removes hive record"
+                    method: "DELETE"
+                duration:
+                  hours: 0
+                  minutes: 5
+                  seconds: 0
+                  milliseconds: 0
+                thresholds:
+                  http_req_duration:
+                    - "p(95)<2000"
+                  http_req_failed:
+                    - "rate<0.01"
+      responses:
+        '200':
+          description: Scenario load configuration created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScenarioLoadResponse"
+              example:
+                status: "success"
+                message: "Scenario load configuration saved successfully"
+                createdCount: 4
+ 
+  /scenarios:
+    post:
+      summary: Create performance test scenarios
+      description: Defines performance test scenarios with configuration for k6 load testing.
+      operationId: createScenarios
+      tags:
+        - Scenarios
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScenarioRequest"
+            example:
+              config:
+                testName: "Hive Service Full Load Test"
+                htmlReportName: "data"
+                htmlReportFilePath: "c://xyz/k6.html"
+                thresholds:
+                  http_req_duration: ["p(95)<500"]
+                  http_req_failed: ["rate<0.01"]
+              scenarios:
+                - name: "create_hive_shared"
+                  description: "Run a fixed total number of hive creation requests shared among VUs"
+                  executor: "shared-iterations"
+                  exec: "createHive"
+                  vus: 5
+                  iterations: 50
+                  startTime: "0s"
+                  gracefulStop: "5s"
+                  swaggerFile: "c://xyz/swagger.yaml"
+                  userInstructions: "Creates a new hive"
+                  api:
+                    - method: "POST"
+                      path: "/service/api/hive/v1/hive"
+                - name: "get_hive_pervu"
+                  description: "Each VU runs a fixed number of get hive requests"
+                  executor: "per-vu-iterations"
+                  exec: "getHive"
+                  vus: 3
+                  iterations: 10
+                  startTime: "0s"
+                  gracefulStop: "5s"
+                  swaggerFile: "c://xyz/swagger.yaml"
+                  userInstructions: "Retrieves the details of a specific hive using its unique ID"
+                  api:
+                    - method: "GET"
+                      path: "/service/api/hive/v1/hive/{hiveID}"
+      responses:
+        '200':
+          description: Scenarios successfully created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScenarioResponse"
+              example:
+                status: "success"
+                message: "6 scenarios created successfully"
+                totalScenarios: 6
+ 
+components:
+  schemas:
+    ScenarioLoadRequest:
+      type: object
+      properties:
+        scenarios:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScenarioLoadItem"
+        commonFields:
+          $ref: "#/components/schemas/CommonFields"
+      required:
+        - scenarios
+        - commonFields
+ 
+    ScenarioLoadItem:
+      type: object
+      properties:
+        virtualUser:
+          type: string
+          description: Number of virtual users for the load step
+        startTime:
+          type: string
+          description: Start time or delay before execution (e.g., 5m)
+        name:
+          type: string
+          description: Identifier name for this load scenario
+      required:
+        - virtualUser
+        - startTime
+        - name
+ 
+    CommonFields:
+      type: object
+      properties:
+        htmlReportName:
+          type: string
+        htmlReportFilePath:
+          type: string
+        executor:
+          type: string
+        iterator:
+          type: integer
+        swaggerFile:
+          type: string
+        userInstructions:
+          type: string
+        apis:
+          type: array
+          items:
+            $ref: "#/components/schemas/APIInfo"
+        duration:
+          $ref: "#/components/schemas/Duration"
+        thresholds:
+          $ref: "#/components/schemas/Thresholds"
+      required:
+        - htmlReportName
+        - executor
+        - swaggerFile
+ 
+    APIInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        pathName:
+          type: string
+        description:
+          type: string
+        method:
+          type: string
+ 
+    Duration:
+      type: object
+      properties:
+        hours:
+          type: integer
+        minutes:
+          type: integer
+        seconds:
+          type: integer
+        milliseconds:
+          type: integer
+ 
+    Thresholds:
+      type: object
+      additionalProperties:
+        type: array
+        items:
+          type: string
+ 
+    ScenarioLoadResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+        createdCount:
+          type: integer
+ 
+    ScenarioRequest:
+      type: object
+      properties:
+        config:
+          $ref: "#/components/schemas/ScenarioConfig"
+        scenarios:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScenarioItem"
+      required:
+        - config
+        - scenarios
+ 
+    ScenarioConfig:
+      type: object
+      properties:
+        testName:
+          type: string
+        htmlReportName:
+          type: string
+        htmlReportFilePath:
+          type: string
+        thresholds:
+          $ref: "#/components/schemas/Thresholds"
+ 
+    ScenarioItem:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        executor:
+          type: string
+        exec:
+          type: string
+        vus:
+          type: integer
+        iterations:
+          type: integer
+        startTime:
+          type: string
+        gracefulStop:
+          type: string
+        duration:
+          type: string
+        swaggerFile:
+          type: string
+        userInstructions:
+          type: string
+        api:
+          type: array
+          items:
+            $ref: "#/components/schemas/APIInfo"
+        stages:
+          type: array
+          items:
+            type: object
+            properties:
+              duration:
+                type: string
+              target:
+                type: integer
+      required:
+        - name
+        - executor
+        - exec
+        - swaggerFile
+        - userInstructions
+ 
+    ScenarioResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+        totalScenarios:
+          type: integer
