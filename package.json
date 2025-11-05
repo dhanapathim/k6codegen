@@ -24,9 +24,12 @@
     "express-session": "^1.18.2",
     "fs": "^0.0.1-security",
     "langchain": "^1.0.2",
+    "morgan": "^1.10.1",
     "multer": "^2.0.2",
     "pdf-parse": "^2.4.5",
-    "textract": "^2.5.0"
+    "textract": "^2.5.0",
+    "winston": "^3.18.3",
+    "yaml": "^2.8.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

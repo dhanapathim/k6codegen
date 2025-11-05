@@ -182,7 +182,7 @@ export async function K6Scriptgenerate(data) {
     iteration_definition,
   });
 
-  console.log("🧠 Sending prompt to Gemini model...");
+  logger.info("🧠 Sending prompt to Gemini model...");
   const k6Script = await chat.invoke(formattedPrompt);
 
   if (!k6Script || !k6Script.content) {
