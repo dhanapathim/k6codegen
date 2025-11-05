@@ -1,10 +1,10 @@
-import { chat } from "./genaiClient.js";
-import { k6Template } from "./k6_scenarios_template.js";
+import { chat } from "./genai-client.js";
+import { k6Template } from "./k6-scenarios-prompt.js";
 import { PromptTemplate } from "@langchain/core/prompts";
 import fs from "fs";
 import dotenv from "dotenv";
 
-dotenv.config(); // ✅ Load environment variables
+dotenv.config();
 
 // 🔒 Define mandatory fields for each executor type
 const MANDATORY_FIELDS_MAP = {

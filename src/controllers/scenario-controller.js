@@ -1,5 +1,5 @@
 import { generateK6Script } from "../ai/k6-load-script-generator.js";
-import { K6Scriptgenerate } from "../ai/k6_generator_scenarios.js";
+import { K6Scriptgenerate } from "../ai/k6-generator-scenarios.js";
 
 
 export const createScenario = async (req, res) => {
