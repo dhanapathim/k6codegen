@@ -13,9 +13,9 @@ This is an Accelerator that is used to generate K6 code based on the human instr
 - Run `npm run dev` if you are running as a developer. If you are executing it on a server use `npm run start`.
 
 ## Mandatory varibales in .env file
--
--
--
+- GOOGLE_API_KEY=<google-api-key>
+- OUTPUT_DIR=<path where the code to be generated>
+- OUTPUT_FILE_NAME=<name of the file with which the code is created>
 
 ## Generating K6 for load test
 Hit the url `/scenarios/load` with method type `POST`. The JSON body to send is as follows:
