@@ -1,5 +1,5 @@
-import { chat } from "./genaiClient.js";
-import { k6Template } from "./k6_scenarios_load.js";
+import { chat } from "./genai-client.js";
+import { k6Template } from "./k6-scenarios-load-prompt.js";
 import { PromptTemplate } from "@langchain/core/prompts";
 import fs from "fs";
 

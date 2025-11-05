@@ -10,7 +10,7 @@ export const createScenario = async (req, res) => {
     // ✅ Wait for the K6 script to be generated
     const { k6Script, outputPath } = await generateK6Script(data);
 
-    console.log(`Generated k6 script is \n ${k6Script}\n`);
+    console.log(`Generated k6 script is \n ${JSON.stringify(k6Script)}\n`);
     console.log("✅ K6 script generated at:", outputPath);
 
     // ✅ Send only one response
@@ -32,7 +32,7 @@ export const createScenarioload = async (req, res) => {
     // ✅ Wait for the K6 script to be generated
     const { k6Script, outputPath } = await K6Scriptgenerate(data);
 
-    console.log(`Generated k6 script is \n ${k6Script}\n`);
+    console.log(`Generated k6 script is \n ${JSON.stringify(k6Script)}\n`);
     console.log("✅ K6 script generated at:", outputPath);
 
     // ✅ Send only one response

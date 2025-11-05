@@ -1,7 +1,7 @@
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from "express";
-import scenarioRoutes from "./routes/scenarioRoutes.js";
+import scenarioRoutes from "./routes/scenario-routes.js";
 
 dotenv.config();
 

@@ -1,5 +1,5 @@
 import express from "express";
-import { createScenario, createScenarioload } from "../controllers/scenarioController.js";
+import { createScenario, createScenarioload } from "../controllers/scenario-controller.js";
 
 const router = express.Router();
 
