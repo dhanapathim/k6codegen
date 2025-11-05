@@ -17,6 +17,8 @@ This is an Accelerator that is used to generate K6 code based on the human instr
 - OUTPUT_DIR=<path where the code to be generated>
 - OUTPUT_FILE_NAME=<name of the file with which the code is created>
 - LOG_DIR=<path where the logs to be stored>
+- LOG_MAX_SIZE=<Sets the maximum size of a single log file>
+- LOG_MAX_FILES=<Sets the maximum files of a single log file>
 
 ## Generating K6 for load test
 Hit the url `/scenarios/load` with method type `POST`. The JSON body to send is as follows:
