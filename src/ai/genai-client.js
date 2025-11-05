@@ -4,7 +4,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-console.log("Google API Key:", process.env.GOOGLE_API_KEY);
 const ai = new GoogleGenAI({
   apiKey: process.env.GOOGLE_API_KEY,
 });

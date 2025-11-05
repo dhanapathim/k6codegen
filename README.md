@@ -16,6 +16,7 @@ This is an Accelerator that is used to generate K6 code based on the human instr
 - GOOGLE_API_KEY=<google-api-key>
 - OUTPUT_DIR=<path where the code to be generated>
 - OUTPUT_FILE_NAME=<name of the file with which the code is created>
+- LOG_DIR=<path where the logs to be stored>
 
 ## Generating K6 for load test
 Hit the url `/scenarios/load` with method type `POST`. The JSON body to send is as follows:
@@ -240,3 +241,42 @@ Hit the url `/scenarios/` with method type `POST`. The JSON body to send is as f
 }
 
 ```
+## Supported K6 Executors
+Each executor defines how the load test will run and what parameters are required.
+
+| **Executor**                 | **Mandatory Fields**                                                               | **Optional Fields**                                                                                  | **Description / Notes**                                                              |
+| ---------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| 🟢 **shared-iterations**     | `executor`, `exec`, `vus`, `iterations`                                            | `gracefulStop`, `startTime`, `description`, `swaggerFile`, `userInstructions`, `api`                 | All VUs share a fixed total number of iterations. Ends when all iterations complete. |
+| 🟢 **per-vu-iterations**     | `executor`, `exec`, `vus`, `iterations`                                            | `gracefulStop`, `startTime`, `description`, `swaggerFile`, `userInstructions`, `api`                 | Each VU executes the same number of iterations independently.                        |
+| 🟢 **constant-vus**          | `executor`, `exec`, `vus`, `duration`                                              | `gracefulStop`, `startTime`, `description`, `swaggerFile`, `userInstructions`, `api`                 | Runs a fixed number of VUs for a specific duration.                                  |
+| 🟢 **ramping-vus**           | `executor`, `exec`, `stages`                                                       | `startVUs`, `gracefulRampDown`, `startTime`, `description`, `swaggerFile`, `userInstructions`, `api` | Adjusts the number of VUs dynamically over defined stages.                           |
+| 🟢 **constant-arrival-rate** | `executor`, `exec`, `rate`, `timeUnit`, `duration`, `preAllocatedVUs`, `maxVUs`    | `gracefulStop`, `startTime`, `description`, `swaggerFile`, `userInstructions`, `api`                 | Maintains a constant request rate per time unit. Useful for RPS-based tests.         |
+| 🟢 **ramping-arrival-rate**  | `executor`, `exec`, `startRate`, `timeUnit`, `stages`, `preAllocatedVUs`, `maxVUs` | `gracefulStop`, `startTime`, `description`, `swaggerFile`, `userInstructions`, `api`                 | Ramps request rate up/down over time. Useful for stress tests.                       |
+| 🟢 **externally-controlled** | `executor`, `exec`, `maxVUs`                                                       | `vus`, `duration`, `startTime`, `description`, `swaggerFile`, `userInstructions`, `api`              | Controlled via external API at runtime; no internal ramping or timing.               |
+
+## Directory Structure
+
+project/
+├── src/
+│   ├── ai/
+│   │   ├── genai-client.js
+│   │   ├── k6-generator-scenarios.js
+|   |   ├── k6-load-script-generator.js
+│   │   ├── k6-scenarios-load-prompt.js
+│   │   └── k6-scenarios-prompt.js
+│   ├── controllers/
+│   │   └── scenario-controller.js
+│   ├── routes/
+│   │   └── scenario-routes.js
+│   ├── utils/
+│   │   └── logger.js
+│   └── server.js
+├── .env
+├── package-lock.json
+├── package.json
+└── README.md
+
+## Error Handling
+
+400 Bad Request → Invalid or missing Swagger file path
+500 Internal Server Error → Script generation or file processing failure

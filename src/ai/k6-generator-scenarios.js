@@ -1,7 +1,10 @@
 import { chat } from "./genai-client.js";
 import { k6Template } from "./k6-scenarios-prompt.js";
 import { PromptTemplate } from "@langchain/core/prompts";
+import logger from "../utils/logger.js";
 import fs from "fs";
+import path from "path";
+import YAML from "yaml";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -31,6 +34,27 @@ const MANDATORY_FIELDS_MAP = {
   "externally-controlled": ["exec", "maxVUs"],
 };
 
+// ✅ Helper: Read & parse a Swagger file (YAML or JSON)
+function readSwaggerFile(filePath) {
+  if (!filePath) throw new logger.Error("Swagger file path is missing.");
+  const resolvedPath = path.resolve(filePath);
+  if (!fs.existsSync(resolvedPath))
+    throw new logger.Error(`Swagger file not found: ${resolvedPath}`);
+
+  const rawData = fs.readFileSync(resolvedPath, "utf-8");
+  const ext = path.extname(resolvedPath).toLowerCase();
+
+  if (ext === ".yaml" || ext === ".yml") {
+    logger.info(`📘 Parsing YAML Swagger file: ${resolvedPath}`);
+    return YAML.parse(rawData);
+  } else if (ext === ".json") {
+    logger.info(`📗 Parsing JSON Swagger file: ${resolvedPath}`);
+    return JSON.parse(rawData);
+  } else {
+    throw new logger.Error(`Unsupported Swagger file type: ${ext}`);
+  }
+}
+
 export async function K6Scriptgenerate(data) {
   const { config, scenarios } = data;
 
@@ -38,14 +62,14 @@ export async function K6Scriptgenerate(data) {
   scenarios.forEach((sc, index) => {
     const requiredFields = MANDATORY_FIELDS_MAP[sc.executor];
     if (!requiredFields) {
-      throw new Error(
+      throw new logger.Error(
         `❌ Invalid executor type "${sc.executor}" in scenario "${sc.name}".`
       );
     }
 
     const missingFields = requiredFields.filter((f) => sc[f] === undefined);
     if (missingFields.length > 0) {
-      throw new Error(
+      throw new logger.Error(
         `❌ Scenario "${sc.name}" (executor: ${sc.executor}) is missing required fields: ${missingFields.join(
           ", "
         )}`
@@ -53,7 +77,26 @@ export async function K6Scriptgenerate(data) {
     }
   });
 
-  // ✅ Step 2: Build scenarios dynamically
+  // ✅ Step 2: Collect Swagger files across all scenarios
+  const swaggerFiles = [
+    ...new Set(
+      scenarios
+        .map((s) => s.swaggerFile)
+        .filter(Boolean)
+        .map((file) => path.resolve(file))
+    ),
+  ];
+
+  logger.info(`📚 Found ${swaggerFiles.length} Swagger file(s):`);
+  swaggerFiles.forEach((file) => logger.info(" -", file));
+
+  // ✅ Step 3: Parse all Swagger files
+  const swaggerDocs = swaggerFiles.map((file) => ({
+    file,
+    content: readSwaggerFile(file),
+  }));
+
+  // ✅ Step 4: Build scenario definitions dynamically
   const scenarioDefinitions = scenarios.reduce((acc, sc) => {
     const scenarioConfig = {
       executor: sc.executor,
@@ -83,39 +126,39 @@ export async function K6Scriptgenerate(data) {
     return acc;
   }, {});
 
-  // ✅ Step 3: Collect all APIs
+  // ✅ Step 5: Gather all API endpoints from all scenarios
   const swaggerPaths = scenarios.flatMap((sc) => {
     if (Array.isArray(sc.api)) {
       return sc.api.map((api) => ({
         method: api.method,
         path: api.path,
+        swaggerFile: sc.swaggerFile,
       }));
     } else if (typeof sc.api === "object" && sc.api !== null) {
-      return [{ method: sc.api.method, path: sc.api.path }];
+      return [{ method: sc.api.method, path: sc.api.path, swaggerFile: sc.swaggerFile }];
     }
     return [];
   });
 
-  // ✅ Step 4: Handle thresholds
-  const thresholds = config.thresholds || {
-    http_req_duration: ["p(95)<2000"],
-    http_req_failed: ["rate<0.01"],
-  };
+  // ✅ Step 6: Set thresholds & report paths
+  const thresholds =
+    config.thresholds || {
+      http_req_duration: ["p(95)<2000"],
+      http_req_failed: ["rate<0.01"],
+    };
 
-  // ✅ Step 5: HTML report path
   const htmlReportPath = `${config.htmlReportFilePath.replace(/\\/g, "/")}/${config.htmlReportName}.html`;
 
-  // ✅ Step 6: Build iteration definition
+  // ✅ Step 7: Build iteration definition summary
   const iteration_definition = scenarios
     .map(
       (sc) =>
-        `Scenario: ${sc.name}\nDescription: ${sc.description}\nInstruction: ${
-          sc.userInstructions || "N/A"
+        `Scenario: ${sc.name}\nDescription: ${sc.description}\nSwagger: ${sc.swaggerFile}\nInstruction: ${sc.userInstructions || "N/A"
         }`
     )
     .join("\n\n");
 
-  // ✅ Step 7: Create the AI prompt
+  // ✅ Step 8: Build prompt
   const prompt = new PromptTemplate({
     template: k6Template,
     inputVariables: [
@@ -123,6 +166,7 @@ export async function K6Scriptgenerate(data) {
       "scenarios",
       "thresholds",
       "swaggerPaths",
+      "swaggerDocs",
       "htmlReportPath",
       "iteration_definition",
     ],
@@ -133,6 +177,7 @@ export async function K6Scriptgenerate(data) {
     scenarios: JSON.stringify(scenarioDefinitions, null, 2),
     thresholds: JSON.stringify(thresholds, null, 2),
     swaggerPaths: JSON.stringify(swaggerPaths, null, 2),
+    swaggerDocs: JSON.stringify(swaggerDocs, null, 2),
     htmlReportPath,
     iteration_definition,
   });
@@ -144,17 +189,15 @@ export async function K6Scriptgenerate(data) {
     throw new Error("❌ Failed to generate K6 script from GenAI model.");
   }
 
-  // ✅ Step 8: Output file config (from .env)
+  // ✅ Step 9: Write output file
   const outputDir = process.env.OUTPUT_DIR || "./generated";
   const outputFile = process.env.OUTPUT_FILE || "generated_k6_script.js";
   const outputPath = `${outputDir}/${outputFile}`;
 
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
-  }
+  if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
 
   fs.writeFileSync(outputPath, k6Script.content, "utf-8");
-  console.log(`✅ Script successfully written to ${outputPath}`);
+  logger.info(`✅ Script successfully written to ${outputPath}`);
 
   return { k6Script, outputPath };
 }

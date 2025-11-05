@@ -1,34 +1,64 @@
 import { chat } from "./genai-client.js";
 import { k6Template } from "./k6-scenarios-load-prompt.js";
 import { PromptTemplate } from "@langchain/core/prompts";
+import logger from "../utils/logger.js";
 import fs from "fs";
+import path from "path";
+import YAML from "yaml";
+
+export function readSwaggerFile(filePath) {
+  if (!filePath) throw new logger.Error("Swagger file path is missing.");
+
+  const resolvedPath = path.resolve(filePath);
+  if (!fs.existsSync(resolvedPath)) throw new logger.Error(`Swagger file not found: ${resolvedPath}`);
+
+  const rawData = fs.readFileSync(resolvedPath, "utf-8");
+  const ext = path.extname(resolvedPath).toLowerCase();
+
+  if (ext === ".yaml" || ext === ".yml") {
+    logger.info(`📘 Parsing YAML Swagger file: ${resolvedPath}`);
+    return YAML.parse(rawData);
+  } else if (ext === ".json") {
+    logger.info(`📗 Parsing JSON Swagger file: ${resolvedPath}`);
+    return JSON.parse(rawData);
+  } else {
+    throw new logger.Error(`Unsupported file type: ${ext}. Use .yaml, .yml, or .json`);
+  }
+}
 
 export async function generateK6Script(data) {
   const { scenarios, commonFields } = data;
 
-  // Example stage definition (can be extended for multiple scenarios)
+  let swaggerFile;
+  try {
+    swaggerFile = path.resolve(`${commonFields.swaggerFile}`);
+    logger.info(`📄 Reading Swagger file from: ${swaggerFile}`);
+  } catch (error) {
+    logger.error("❌", error.message);
+    throw new logger.Error(error.message);
+  }
+
+  const swaggerJson = readSwaggerFile(swaggerFile);
+
+  const { hours, minutes, seconds } = commonFields.duration;
+  const formattedDuration =
+    `${hours ? hours + "h" : ""}${minutes ? minutes + "m" : ""}${seconds ? seconds + "s" : ""}` || "1m";
+
   const stages = scenarios.reduce((acc, sc) => {
     acc[sc.name] = {
       executor: commonFields.executor,
       vus: sc.virtualUser,
-      duration:
-        `${commonFields.duration.hours}h` +
-        `${commonFields.duration.minutes}m` +
-        `${commonFields.duration.seconds}s`,
+      duration: formattedDuration,
       startTime: sc.startTime,
     };
     return acc;
   }, {});
 
-  const iteration_definition = commonFields.iterationDefinition;
-
-  // Extract selected APIs from each scenario
-  const swaggerPaths = commonFields.apis
-    .filter((api) => api.selected)
-    .map((api) => ({
-      method: api.method,
-      path: api.pathName,
-    }));
+  const iteration_definition = commonFields.iterationDefinition || "";
+  const manualSwaggerPaths = commonFields.apis.map((api) => ({
+    method: api.method,
+    path: api.pathName,
+  }));
 
   const thresholds = commonFields.thresholds || {
     http_req_duration: ["p(95)<2000"],
@@ -39,32 +69,37 @@ export async function generateK6Script(data) {
 
   const prompt = new PromptTemplate({
     template: k6Template,
-    inputVariables: ["stages", "thresholds", "swaggerPaths", "htmlReportPath", "iteration_definition"],
+    inputVariables: [
+      "stages",
+      "thresholds",
+      "swaggerPaths",
+      "htmlReportPath",
+      "iteration_definition",
+      "swaggerJson",
+    ],
   });
 
   const formattedPrompt = await prompt.format({
     stages: JSON.stringify(stages, null, 2),
     thresholds: JSON.stringify(thresholds, null, 2),
-    swaggerPaths: JSON.stringify(swaggerPaths, null, 2),
+    swaggerPaths: JSON.stringify(manualSwaggerPaths, null, 2),
     iteration_definition,
+    swaggerJson,
     htmlReportPath,
   });
 
-
-  console.log("🧠 Sending prompt to Gemini model...");
+  logger.info("🧠 Sending prompt to Gemini model...");
   const k6Script = await chat.invoke(formattedPrompt);
 
-  console.log("------------Generated K6 Script:-------------");
-  console.log(`Genreated content is ${k6Script.content}`);
+  logger.info("------------Generated K6 Script:-------------");
+  logger.info(k6Script.content);
 
-  // Write the generated script to a file
   const outputDir = process.env.OUTPUT_DIR || "./generated";
-  const outputFile = process.env.OUTPUT_FILE_NAME || "generated_k6_script.js";
+  const outputFile = process.env.OUTPUT_LOAD_FILE_NAME || "generated_k6_load_script.js";
 
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir);
-  }
+  if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
   const outputPath = `${outputDir}/${outputFile}`;
   fs.writeFileSync(outputPath, k6Script.content, "utf-8");
+
   return { k6Script, outputPath };
 }
