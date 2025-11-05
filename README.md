@@ -248,7 +248,7 @@ Each executor defines how the load test will run and what parameters are require
 
 | **Executor**                 | **Mandatory Fields**                                                               | **Optional Fields**                                                                                  | **Description / Notes**                                                              |
 | ---------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| 🟢 **shared-iterations**     | `executor`, `exec`, `vus`, `iterations`                                            | `gracefulStop`, `startTime`, `description`, `swaggerFile`, `userInstructions`, `api`                 | All VUs share a fixed total number of iterations. Ends when all iterations complete. |
+| 🟢 **shared-iterations**     | `executor`, `exec`, `vus`, `iterations`                                            | `gracefulStop`, `startTime`, `description`, `swaggerFile`, `userInstructions`, `api`                 | All VUs share a fixed total number of iterations. Ends when all iterations are completed. |
 | 🟢 **per-vu-iterations**     | `executor`, `exec`, `vus`, `iterations`                                            | `gracefulStop`, `startTime`, `description`, `swaggerFile`, `userInstructions`, `api`                 | Each VU executes the same number of iterations independently.                        |
 | 🟢 **constant-vus**          | `executor`, `exec`, `vus`, `duration`                                              | `gracefulStop`, `startTime`, `description`, `swaggerFile`, `userInstructions`, `api`                 | Runs a fixed number of VUs for a specific duration.                                  |
 | 🟢 **ramping-vus**           | `executor`, `exec`, `stages`                                                       | `startVUs`, `gracefulRampDown`, `startTime`, `description`, `swaggerFile`, `userInstructions`, `api` | Adjusts the number of VUs dynamically over defined stages.                           |
@@ -256,29 +256,4 @@ Each executor defines how the load test will run and what parameters are require
 | 🟢 **ramping-arrival-rate**  | `executor`, `exec`, `startRate`, `timeUnit`, `stages`, `preAllocatedVUs`, `maxVUs` | `gracefulStop`, `startTime`, `description`, `swaggerFile`, `userInstructions`, `api`                 | Ramps request rate up/down over time. Useful for stress tests.                       |
 | 🟢 **externally-controlled** | `executor`, `exec`, `maxVUs`                                                       | `vus`, `duration`, `startTime`, `description`, `swaggerFile`, `userInstructions`, `api`              | Controlled via external API at runtime; no internal ramping or timing.               |
 
-## Directory Structure
 
-project/
-├── src/
-│   ├── ai/
-│   │   ├── genai-client.js
-│   │   ├── k6-generator-scenarios.js
-|   |   ├── k6-load-script-generator.js
-│   │   ├── k6-scenarios-load-prompt.js
-│   │   └── k6-scenarios-prompt.js
-│   ├── controllers/
-│   │   └── scenario-controller.js
-│   ├── routes/
-│   │   └── scenario-routes.js
-│   ├── utils/
-│   │   └── logger.js
-│   └── server.js
-├── .env
-├── package-lock.json
-├── package.json
-└── README.md
-
-## Error Handling
-
-400 Bad Request → Invalid or missing Swagger file path
-500 Internal Server Error → Script generation or file processing failure
