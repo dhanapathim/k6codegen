@@ -69,7 +69,7 @@ export async function K6Scriptgenerate(data) {
 
     const missingFields = requiredFields.filter((f) => sc[f] === undefined);
     if (missingFields.length > 0) {
-      throw new logger.Error(
+      throw new Error(
         `❌ Scenario "${sc.name}" (executor: ${sc.executor}) is missing required fields: ${missingFields.join(
           ", "
         )}`
