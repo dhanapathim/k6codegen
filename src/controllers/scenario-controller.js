@@ -14,7 +14,7 @@ function validateSwaggerFile(swaggerFilePath) {
   const resolvedPath = path.resolve(swaggerFilePath);
 
   if (!fs.existsSync(resolvedPath)) {
-    throw new logger.Error("Swagger file is invalid or not found.");
+    throw new Error("Swagger file is invalid or not found.");
   }
 
   return resolvedPath;
@@ -42,7 +42,8 @@ export const createScenario = async (req, res) => {
 
     });
   } catch (error) {
-    if (error.message.includes("Swagger file")) {
+  
+    if (error.message.includes("Swagger")) {
       logger.warn(error.message);
       return res.status(400).json({ error: error.message });
     }
