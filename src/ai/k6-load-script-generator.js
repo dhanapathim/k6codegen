@@ -26,7 +26,7 @@ export function readSwaggerFile(filePath) {
   }
 }
 
-export async function generateK6Script(data) {
+export async function generateK6Script(data, tool = null) {
   const { scenarios, commonFields } = data;
 
   let swaggerFile;
@@ -60,12 +60,24 @@ export async function generateK6Script(data) {
     path: api.pathName,
   }));
 
-  const thresholds = commonFields.thresholds || {
-    http_req_duration: ["p(95)<2000"],
-    http_req_failed: ["rate<0.01"],
-  };
+  // Handle new thresholds format: object with metric names as keys and values as strings/numbers
+  // K6 expects arrays like ["p(95)<2000"], so wrap each value in an array
+  let thresholds;
+  if (commonFields.thresholds && Object.keys(commonFields.thresholds).length > 0) {
+    thresholds = {};
+    for (const [metric, value] of Object.entries(commonFields.thresholds)) {
+      thresholds[metric] = [value];
+    }
+  } else {
+    thresholds = {};
+  }
 
   const htmlReportPath = `${commonFields.htmlReportFilePath}/${commonFields.htmlReportName}.html`;
+
+  // Log tool if provided (from query parameter)
+  if (tool) {
+    logger.info(`🔧 Tool specified: ${tool}`);
+  }
 
   const prompt = new PromptTemplate({
     template: k6Template,

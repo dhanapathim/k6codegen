@@ -10,5 +10,5 @@ const ai = new GoogleGenAI({
 
 export const chat = new ChatGoogleGenerativeAI({
   client: ai,
-  model: "gemini-2.0-flash-thinking-exp-1219",
+  model: "gemini-2.5-flash",
 });
