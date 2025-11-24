@@ -23,7 +23,11 @@ function validateSwaggerFile(swaggerFilePath) {
 export const createScenario = async (req, res) => {
   try {
     const data = req.body;
+    const tool = req.query.tool; // Get tool from query parameter
     logger.info(`Creating scenario with data: ${JSON.stringify(data, null, 2)}`);
+    if (tool) {
+      logger.info(`🔧 Tool from query parameter: ${tool}`);
+    }
 
     // ✅ Validate Swagger file path
     const swagger = path.resolve(`${data.commonFields.swaggerFile}`);
@@ -31,14 +35,14 @@ export const createScenario = async (req, res) => {
     logger.info(`✅ Swagger file found at: ${swaggerPath}`);
 
     // ✅ Wait for the K6 script to be generated
-    const { k6Script, outputPath } = await generateK6Script(data);
+    const { k6Script, outputPath } = await generateK6Script(data, tool);
 
     logger.info(`Generated k6 script is \n ${JSON.stringify(k6Script)}\n`);
     logger.info("✅ K6 script generated at:", outputPath);
 
     // ✅ Send only one response
     res.status(201).json({
-      message: "✅ K6 script generated successfully",
+      message: "✅ Script generated successfully",
 
     });
   } catch (error) {
@@ -49,14 +53,18 @@ export const createScenario = async (req, res) => {
     }
 
     logger.error("❌ Error creating scenario:", error);
-    res.status(500).json({ error: "Failed to generate K6 script" });
+    res.status(500).json({ error: "Failed to generate script" });
   }
 };
 
 export const createScenarioload = async (req, res) => {
   try {
     const data = req.body;
+    const tool = req.query.tool; // Get tool from query parameter
     logger.info(`Creating scenario with data: ${JSON.stringify(data, null, 2)}`);
+    if (tool) {
+      logger.info(`🔧 Tool from query parameter: ${tool}`);
+    }
 
      const swaggerFiles = [
       ...new Set(
@@ -80,14 +88,14 @@ export const createScenarioload = async (req, res) => {
 
 
     // ✅ Wait for the K6 script to be generated
-    const { k6Script, outputPath } = await K6Scriptgenerate(data);
+    const { k6Script, outputPath } = await K6Scriptgenerate(data, tool);
 
     logger.info(`Generated k6 script is \n ${JSON.stringify(k6Script)}\n`);
-    logger.info("✅ K6 script generated at:", outputPath);
+    logger.info("✅ Script generated at:", outputPath);
 
     // ✅ Send only one response
     res.status(201).json({
-      message: "✅ K6 script generated successfully",
+      message: "✅ Script generated successfully",
 
     });
   } catch (error) {
@@ -97,6 +105,6 @@ export const createScenarioload = async (req, res) => {
     }
 
     logger.error("❌ Error creating scenario:", error);
-    res.status(500).json({ error: "Failed to generate K6 script" });
+    res.status(500).json({ error: "Failed to generate script" });
   }
 };

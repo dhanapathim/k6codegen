@@ -55,7 +55,7 @@ function readSwaggerFile(filePath) {
   }
 }
 
-export async function K6Scriptgenerate(data) {
+export async function K6Scriptgenerate(data, tool = null) {
   const { config, scenarios } = data;
 
   // ✅ Step 1: Validate mandatory fields per executor type
@@ -141,13 +141,25 @@ export async function K6Scriptgenerate(data) {
   });
 
   // ✅ Step 6: Set thresholds & report paths
-  const thresholds =
-    config.thresholds || {
-      http_req_duration: ["p(95)<2000"],
-      http_req_failed: ["rate<0.01"],
+  // Handle new thresholds format: object with metric names as keys and values as strings/numbers
+  // K6 expects arrays like ["p(95)<2000"], so wrap each value in an array
+  let thresholds;
+  if (config.thresholds && Object.keys(config.thresholds).length > 0) {
+    thresholds = {};
+    for (const [metric, value] of Object.entries(config.thresholds)) {
+      thresholds[metric] = [value];
+    }
+  } else {
+    thresholds = {
     };
+  }
 
   const htmlReportPath = `${config.htmlReportFilePath.replace(/\\/g, "/")}/${config.htmlReportName}.html`;
+
+  // Log tool if provided (from query parameter)
+  if (tool) {
+    logger.info(`🔧 Tool specified: ${tool}`);
+  }
 
   // ✅ Step 7: Build iteration definition summary
   const iteration_definition = scenarios
@@ -186,7 +198,7 @@ export async function K6Scriptgenerate(data) {
   const k6Script = await chat.invoke(formattedPrompt);
 
   if (!k6Script || !k6Script.content) {
-    throw new Error("❌ Failed to generate K6 script from GenAI model.");
+    throw new Error("❌ Failed to generate script from GenAI model.");
   }
 
   // ✅ Step 9: Write output file
