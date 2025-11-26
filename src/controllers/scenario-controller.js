@@ -101,8 +101,6 @@ export const createScenarioload = async (req, res) => {
       logger.info(`✅ Validated Swagger file: ${validated}`);
     });
 
-
-
     const toolKey = tool?.toLowerCase();
     switch (toolKey) {
       case "jmeter": {
