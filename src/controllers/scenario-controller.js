@@ -38,32 +38,29 @@ export const createScenario = async (req, res) => {
     logger.info(`✅ Swagger file found at: ${swaggerPath}`);
 
     const toolKey = tool?.toLowerCase();
-    let generationResult;
     switch (toolKey) {
-      case "jemeter": {
-        console.log("JMeter tool selected - no generation implemented.");
+      case "jmeter": {
+        console.log("Jmeter tool selected - no generation implemented.");
         return res.status(200).json({
-          message: "JMeter generation is not implemented yet.",
+          message: "Jmeter generation is not implemented yet.",
         });
       }
-      case "k6":
-      default: {
+      case "k6":{
         // ✅ Wait for the K6 script to be generated
-        generationResult = await k6LoadScriptGenerator.generateLoadScript(data, tool);
-        break;
+        const { k6Script, outputPath } = await k6LoadScriptGenerator.generateLoadScript(data, tool);
+
+        logger.info(`Generated k6 script is \n ${JSON.stringify(k6Script)}\n`);
+        logger.info("✅ K6 script generated at:", outputPath);
+
+        // ✅ Send only one response
+        return res.status(201).json({
+          message: "✅ Script generated successfully",
+        });
+      }
+      default: {
+        console.log("No tool selected, defaulting to k6 generation.");
       }
     }
-
-    const { k6Script, outputPath } = generationResult;
-
-    logger.info(`Generated k6 script is \n ${JSON.stringify(k6Script)}\n`);
-    logger.info("✅ K6 script generated at:", outputPath);
-
-    // ✅ Send only one response
-    res.status(201).json({
-      message: "✅ Script generated successfully",
-
-    });
   } catch (error) {
   
     if (error.message.includes("Swagger")) {
@@ -107,31 +104,29 @@ export const createScenarioload = async (req, res) => {
 
 
     const toolKey = tool?.toLowerCase();
-    let generationResult;
     switch (toolKey) {
-      case "jemeter": {
-        console.log("JMeter tool selected - no generation implemented.");
+      case "jmeter": {
+        console.log("Jmeter tool selected - no generation implemented.");
         return res.status(200).json({
-          message: "JMeter generation is not implemented yet.",
+          message: "Jmeter generation is not implemented yet.",
         });
       }
-      case "k6":
+      case "k6":{
+        // ✅ Wait for the K6 script to be generated
+        const { k6Script, outputPath } = await k6ScenarioGenerator.generateScenario(data, tool);
+
+        logger.info(`Generated k6 script is \n ${JSON.stringify(k6Script)}\n`);
+        logger.info("✅ Script generated at:", outputPath);
+
+        // ✅ Send only one response
+        return res.status(201).json({
+          message: "✅ Script generated successfully",
+        });
+      }
       default: {
-        generationResult = await k6ScenarioGenerator.generateScenario(data, tool);
-        break;
+        console.log("No tool selected, defaulting to k6 scenario generation.");
       }
     }
-
-    const { k6Script, outputPath } = generationResult;
-
-    logger.info(`Generated k6 script is \n ${JSON.stringify(k6Script)}\n`);
-    logger.info("✅ Script generated at:", outputPath);
-
-    // ✅ Send only one response
-    res.status(201).json({
-      message: "✅ Script generated successfully",
-
-    });
   } catch (error) {
     if (error.message.includes("Swagger file")) {
       logger.warn(error.message);
