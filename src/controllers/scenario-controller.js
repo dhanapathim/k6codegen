@@ -1,8 +1,11 @@
-import { generateK6Script } from "../ai/k6-load-script-generator.js";
-import { K6Scriptgenerate } from "../ai/k6-generator-scenarios.js";
+import { K6LoadScriptGenerator } from "../ai/k6-load-script-generator.js";
+import { K6ScenarioGenerator } from "../ai/k6-generator-scenarios.js";
 import logger from "../utils/logger.js";
 import fs from "fs";
 import path from "path";
+
+const k6LoadScriptGenerator = new K6LoadScriptGenerator();
+const k6ScenarioGenerator = new K6ScenarioGenerator();
 
 
 function validateSwaggerFile(swaggerFilePath) {
@@ -35,7 +38,7 @@ export const createScenario = async (req, res) => {
     logger.info(`✅ Swagger file found at: ${swaggerPath}`);
 
     // ✅ Wait for the K6 script to be generated
-    const { k6Script, outputPath } = await generateK6Script(data, tool);
+    const { k6Script, outputPath } = await k6LoadScriptGenerator.generateLoadScript(data, tool);
 
     logger.info(`Generated k6 script is \n ${JSON.stringify(k6Script)}\n`);
     logger.info("✅ K6 script generated at:", outputPath);
@@ -88,7 +91,7 @@ export const createScenarioload = async (req, res) => {
 
 
     // ✅ Wait for the K6 script to be generated
-    const { k6Script, outputPath } = await K6Scriptgenerate(data, tool);
+    const { k6Script, outputPath } = await k6ScenarioGenerator.generateScenario(data, tool);
 
     logger.info(`Generated k6 script is \n ${JSON.stringify(k6Script)}\n`);
     logger.info("✅ Script generated at:", outputPath);
