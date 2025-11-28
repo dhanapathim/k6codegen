@@ -14,7 +14,8 @@ app.use(cors({
   origin: "*", // Allowed origins
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false}
+  credentials: false
+}
 ));
 
 // ✅ Log all HTTP requests using Morgan + Winston

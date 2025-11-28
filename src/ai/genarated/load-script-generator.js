@@ -5,7 +5,7 @@ export class LoadScriptGenerator {
     }
   }
 
-  async generateLoadScript(data, tool) {
+  async generateLoadScript(data) {
     throw new Error("generateLoadScript must be implemented by subclasses.");
   }
 }

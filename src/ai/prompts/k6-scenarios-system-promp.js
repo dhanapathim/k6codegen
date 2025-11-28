@@ -1,16 +1,18 @@
-export const k6Template = `
-The Swagger content is {swaggerDocs}
+
+export const K6ScenarioPrompt = `
+The Swagger content is swaggerDocs
 You are an expert K6 performance engineer. Generate a **production-ready K6 JavaScript script (ES6)** that meets the following specification.
 
 1. General Requirements
 - The script must include **scenarios**, **thresholds**, and **summary reports**.
 - Use the provided JSON configuration values as input variables:
-  - Test Name: {testName}
-  - Scenarios: {scenarios}
-  - Thresholds: {thresholds}
-  - HTML Report Path: {htmlReportPath}
-  - Iteration Definition / Flow Logic: {iteration_definition}
-  - Swagger Paths: {swaggerPaths}
+  - Test Name: testName
+  - Scenarios: scenarios
+  - Thresholds: thresholds
+  - HTML Report Path: htmlReportPath
+   - HTML report name: htmlReportName
+  - Iteration Definition / Flow Logic: iteration_definition
+  - Swagger Paths: swaggerPaths
 - Ensure the script is modular, maintainable, and follows best practices for K6 scripting.
 
 2. Scenarios

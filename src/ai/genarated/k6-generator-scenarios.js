@@ -1,12 +1,14 @@
-import { chat } from "./genai-client.js";
-import { k6Template } from "./k6-scenarios-prompt.js";
+import { createChatModel } from "../genai-client.js";
+import { k6Template } from "../prompts/k6-scenarios-prompt.js";
 import { PromptTemplate } from "@langchain/core/prompts";
-import logger from "../utils/logger.js";
+import logger from "../../utils/logger.js";
 import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
 import { ScenarioGenerator } from "./scenario-generator.js";
-import { readSwaggerFile } from "./swagger-reader.js";
+import { readSwaggerFile } from "../../utils/swagger-reader.js";
+import { CodeFenceCleaner } from "../../utils/code-cleaner.js";
+
 
 dotenv.config();
 
@@ -40,9 +42,11 @@ export class K6ScenarioGenerator extends ScenarioGenerator {
     super();
   }
 
-  async generateScenario(data, tool = null) {
+  async generateScenario(data) {
     const { config, scenarios } = data;
 
+    const tool = data.config.tool;
+    const chat = createChatModel({ tool, mode: "scenario" });
     // ✅ Step 1: Validate mandatory fields per executor type
     scenarios.forEach((sc) => {
       const requiredFields = MANDATORY_FIELDS_MAP[sc.executor];
@@ -68,7 +72,7 @@ export class K6ScenarioGenerator extends ScenarioGenerator {
         scenarios
           .map((s) => s.swaggerFile)
           .filter(Boolean)
-          .map((file) => path.resolve(file))
+          .map((file) => path.resolve(process.env.BASE_PATH, file))
       ),
     ];
 
@@ -136,7 +140,8 @@ export class K6ScenarioGenerator extends ScenarioGenerator {
       thresholds = {};
     }
 
-    const htmlReportPath = `${config.htmlReportFilePath.replace(/\\/g, "/")}/${config.htmlReportName}.html`;
+    const htmlReportPath = `${config.htmlReportFilePath}`;
+    const htmlReportName = `${config.htmlReportName}`;
 
     if (tool) {
       logger.info(`🔧 Tool specified: ${tool}`);
@@ -162,6 +167,7 @@ export class K6ScenarioGenerator extends ScenarioGenerator {
         "swaggerDocs",
         "htmlReportPath",
         "iteration_definition",
+        "htmlReportName"
       ],
     });
 
@@ -173,25 +179,27 @@ export class K6ScenarioGenerator extends ScenarioGenerator {
       swaggerDocs: JSON.stringify(swaggerDocs, null, 2),
       htmlReportPath,
       iteration_definition,
+      htmlReportName
     });
 
     logger.info("🧠 Sending prompt to Gemini model...");
-    const k6Script = await chat.invoke(formattedPrompt);
+    const Script = await chat.invoke(formattedPrompt);
 
-    if (!k6Script || !k6Script.content) {
-      throw new Error("❌ Failed to generate script from GenAI model.");
-    }
+    logger.info("------------Generated Script:-------------");
+    logger.info(Script.content);
 
     // ✅ Step 9: Write output file
     const outputDir = process.env.OUTPUT_DIR || "./generated";
-    const outputFile = process.env.OUTPUT_FILE || "generated_k6_script.js";
-    const outputPath = `${outputDir}/${outputFile}`;
+    const outputFile = process.env.OUTPUT_FILE || "generated_script";
+    const outputPath = `${outputDir}/${outputFile}.js`;
 
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
 
-    fs.writeFileSync(outputPath, k6Script.content, "utf-8");
+    fs.writeFileSync(outputPath, Script.content, "utf-8");
     logger.info(`✅ Script successfully written to ${outputPath}`);
+    const cleaner = new CodeFenceCleaner(outputDir, [".js", ".ts", ".java"]);
+    cleaner.clean();
 
-    return { k6Script, outputPath };
+    return { Script, outputPath };
   }
 }

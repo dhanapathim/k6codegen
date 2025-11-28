@@ -1,12 +1,10 @@
-import { K6LoadScriptGenerator } from "../ai/k6-load-script-generator.js";
-import { K6ScenarioGenerator } from "../ai/k6-generator-scenarios.js";
 import logger from "../utils/logger.js";
 import fs from "fs";
+import { loadtoolHandlers, scenariotoolHandlers } from "./toolHandlers.js";
 import path from "path";
+import dotenv from "dotenv";
 
-const k6LoadScriptGenerator = new K6LoadScriptGenerator();
-const k6ScenarioGenerator = new K6ScenarioGenerator();
-
+dotenv.config();
 
 function validateSwaggerFile(swaggerFilePath) {
 
@@ -23,108 +21,93 @@ function validateSwaggerFile(swaggerFilePath) {
   return resolvedPath;
 }
 
-export const createScenario = async (req, res) => {
+export const createLoad = async (req, res) => {
   try {
     const data = req.body;
-    const tool = req.query.tool; // Get tool from query parameter
+    const tool = data.commonFields.tool?.toLowerCase();
+    logger.info(`Creating scenario with tool: ${tool}`);
     logger.info(`Creating scenario with data: ${JSON.stringify(data, null, 2)}`);
-    if (tool) {
-      logger.info(`🔧 Tool from query parameter: ${tool}`);
-    }
 
-    // ✅ Validate Swagger file path
-    const swagger = path.resolve(`${data.commonFields.swaggerFile}`);
-    const swaggerPath = validateSwaggerFile(swagger);
+    // Validate swagger path
+    const fullPath = path.join(process.env.BASE_PATH, data.commonFields.swaggerFile);
+    const swaggerPath = validateSwaggerFile(path.resolve(fullPath));
     logger.info(`✅ Swagger file found at: ${swaggerPath}`);
 
-    const toolKey = tool?.toLowerCase();
-    switch (toolKey) {
-      case "jmeter": {
-        console.log("Jmeter tool selected - no generation implemented.");
-        return res.status(200).json({
-          message: "Jmeter generation is not implemented yet.",
-        });
-      }
-      case "k6":{
-        // ✅ Wait for the K6 script to be generated
-        const { k6Script, outputPath } = await k6LoadScriptGenerator.generateLoadScript(data, tool);
+    // Get handler dynamically
+    const handler = loadtoolHandlers[tool];
 
-        logger.info(`Generated k6 script is \n ${JSON.stringify(k6Script)}\n`);
-        logger.info("✅ K6 script generated at:", outputPath);
-
-        // ✅ Send only one response
-        return res.status(201).json({
-          message: "✅ Script generated successfully",
-        });
-      }
-      default: {
-        console.log("No tool selected, defaulting to k6 generation.");
-      }
+    if (!handler) {
+      return res.status(400).json({ message: "❌ Invalid tool selected" });
     }
+
+    // Call selected tool generator
+    const { Script, outputPath } = await handler(data);
+
+    logger.info(`Generated script:\n ${JSON.stringify(Script)}`);
+    logger.info(`Script generated at: ${outputPath}`);
+
+    return res.status(201).json({
+      message: "✅ Script generated successfully",
+    });
+
   } catch (error) {
-  
     if (error.message.includes("Swagger")) {
       logger.warn(error.message);
       return res.status(400).json({ error: error.message });
     }
 
     logger.error("❌ Error creating scenario:", error);
-    res.status(500).json({ error: "Failed to generate script" });
+    return res.status(500).json({ error: "Failed to generate script" });
   }
 };
 
-export const createScenarioload = async (req, res) => {
+export const createScenario = async (req, res) => {
   try {
     const data = req.body;
-    const tool = req.query.tool; // Get tool from query parameter
+    const tool = data.config.tool?.toLowerCase();
     logger.info(`Creating scenario with data: ${JSON.stringify(data, null, 2)}`);
-    if (tool) {
-      logger.info(`🔧 Tool from query parameter: ${tool}`);
-    }
+    logger.info(`🔧 Selected tool: ${tool}`);
 
-     const swaggerFiles = [
+    // -------------------------------
+    //  Validate Swagger file paths
+    // -------------------------------
+
+    const swaggerFiles = [
       ...new Set(
         data.scenarios
           .map((sc) => sc.swaggerFile)
           .filter(Boolean)
-          .map((file) => path.resolve(file))
+          .map((file) => path.resolve(process.env.BASE_PATH, file))
       ),
     ];
 
     if (swaggerFiles.length === 0) {
-      throw new logger.Error("No Swagger file paths provided in any scenario.");
+      throw new Error("No Swagger file paths provided in any scenario.");
     }
 
     logger.info(`📚 Found ${swaggerFiles.length} Swagger file(s):`);
     swaggerFiles.forEach((file) => {
-      const validated = validateSwaggerFile(file);
-      logger.info(`✅ Validated Swagger file: ${validated}`);
+      const valid = validateSwaggerFile(file);
+      logger.info(`✅ Validated Swagger file: ${valid}`);
     });
 
-    const toolKey = tool?.toLowerCase();
-    switch (toolKey) {
-      case "jmeter": {
-        console.log("Jmeter tool selected - no generation implemented.");
-        return res.status(200).json({
-          message: "Jmeter generation is not implemented yet.",
-        });
-      }
-      case "k6":{
-        // ✅ Wait for the K6 script to be generated
-        const { k6Script, outputPath } = await k6ScenarioGenerator.generateScenario(data, tool);
+    //  Dynamic tool selection    
+    const handler = scenariotoolHandlers[tool];
 
-        logger.info(`Generated k6 script is \n ${JSON.stringify(k6Script)}\n`);
-        logger.info("✅ Script generated at:", outputPath);
-
-        // ✅ Send only one response
-        return res.status(201).json({
-          message: "✅ Script generated successfully",
-        });
-      }
-      default: {
-        console.log("No tool selected, defaulting to k6 scenario generation.");
-      }
+    if (!handler) {
+      return res.status(400).json({ message: "❌ Invalid or no tool selected" });
     }
+
+    // Call the appropriate generator
+    const { Script, outputPath } = await handler(data, tool);
+
+    logger.info(`Generated script:\n${JSON.stringify(Script)}`);
+    logger.info(`📄 Output generated at: ${outputPath}`);
+
+    return res.status(201).json({
+      message: "✅ Script generated successfully",
+    });
+
   } catch (error) {
     if (error.message.includes("Swagger file")) {
       logger.warn(error.message);
@@ -132,6 +115,6 @@ export const createScenarioload = async (req, res) => {
     }
 
     logger.error("❌ Error creating scenario:", error);
-    res.status(500).json({ error: "Failed to generate script" });
+    return res.status(500).json({ error: "Failed to generate script" });
   }
 };

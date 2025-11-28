@@ -1,23 +1,34 @@
-import { chat } from "./genai-client.js";
-import { k6Template } from "./k6-scenarios-load-prompt.js";
+import { createChatModel } from "../genai-client.js";
+import { k6Template } from "../prompts/k6-scenarios-load-prompt.js";
 import { PromptTemplate } from "@langchain/core/prompts";
-import logger from "../utils/logger.js";
+import logger from "../../utils/logger.js";
 import fs from "fs";
 import path from "path";
+import dotenv from "dotenv";
 import { LoadScriptGenerator } from "./load-script-generator.js";
-import { readSwaggerFile } from "./swagger-reader.js";
+import { readSwaggerFile } from "../../utils/swagger-reader.js";
+import { CodeFenceCleaner } from "../../utils/code-cleaner.js";
+
+
+dotenv.config();
 
 export class K6LoadScriptGenerator extends LoadScriptGenerator {
   constructor() {
     super();
   }
 
-  async generateLoadScript(data, tool = null) {
+  async generateLoadScript(data) {
     const { scenarios, commonFields } = data;
 
+    const tool = data.commonFields.tool;
+  // Create chat model with system prompt for JMeter load script generation
+    const chat = createChatModel({ tool, mode: "load" });
+
     let swaggerFile;
+    const fullPath = path.join(process.env.BASE_PATH, data.commonFields.swaggerFile);
+
     try {
-      swaggerFile = path.resolve(`${commonFields.swaggerFile}`);
+      swaggerFile = path.resolve(fullPath);
       logger.info(`📄 Reading Swagger file from: ${swaggerFile}`);
     } catch (error) {
       logger.error("❌", error.message);
@@ -46,8 +57,7 @@ export class K6LoadScriptGenerator extends LoadScriptGenerator {
       path: api.pathName,
     }));
 
-    // Handle new thresholds format: object with metric names as keys and values as strings/numbers
-    // K6 expects arrays like ["p(95)<2000"], so wrap each value in an array
+
     let thresholds;
     if (commonFields.thresholds && Object.keys(commonFields.thresholds).length > 0) {
       thresholds = {};
@@ -58,7 +68,8 @@ export class K6LoadScriptGenerator extends LoadScriptGenerator {
       thresholds = {};
     }
 
-    const htmlReportPath = `${commonFields.htmlReportFilePath}/${commonFields.htmlReportName}.html`;
+    const htmlReportPath = `${commonFields.htmlReportFilePath}`;
+    const htmlReportName = `${commonFields.htmlReportName}`;
 
     if (tool) {
       logger.info(`🔧 Tool specified: ${tool}`);
@@ -71,6 +82,7 @@ export class K6LoadScriptGenerator extends LoadScriptGenerator {
         "thresholds",
         "swaggerPaths",
         "htmlReportPath",
+        "htmlReportName",
         "iteration_definition",
         "swaggerJson",
       ],
@@ -81,23 +93,26 @@ export class K6LoadScriptGenerator extends LoadScriptGenerator {
       thresholds: JSON.stringify(thresholds, null, 2),
       swaggerPaths: JSON.stringify(manualSwaggerPaths, null, 2),
       iteration_definition,
+      htmlReportName,
       swaggerJson,
       htmlReportPath,
     });
 
     logger.info("🧠 Sending prompt to Gemini model...");
-    const k6Script = await chat.invoke(formattedPrompt);
+    const Script = await chat.invoke(formattedPrompt);
 
     logger.info("------------Generated K6 Script:-------------");
-    logger.info(k6Script.content);
+    logger.info(Script.content);
 
     const outputDir = process.env.OUTPUT_DIR || "./generated";
     const outputFile = process.env.OUTPUT_LOAD_FILE_NAME || "generated_k6_load_script.js";
 
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
     const outputPath = `${outputDir}/${outputFile}`;
-    fs.writeFileSync(outputPath, k6Script.content, "utf-8");
+    fs.writeFileSync(outputPath, Script.content, "utf-8");
+    const cleaner = new CodeFenceCleaner(outputDir, [".js", ".ts", ".java"]);
+    cleaner.clean();
 
-    return { k6Script, outputPath };
+    return { Script, outputPath };
   }
 }

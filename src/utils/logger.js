@@ -40,7 +40,7 @@ const logger = createLogger({
       format: combine(colorize(), timestamp(), consoleFormat),
       maxsize: Number(process.env.LOG_MAX_SIZE) || 10 * 1024 * 1024,
       maxFiles: Number(process.env.LOG_MAX_FILES) || 2,               // keep last 2 rotated files
-                  
+
     }),
 
     // 🟣 Debug log rotation

@@ -5,7 +5,7 @@ export class ScenarioGenerator {
     }
   }
 
-  async generateScenario(data, tool) {
+  async generateScenario(data) {
     throw new Error("generateScenario must be implemented by subclasses.");
   }
 }

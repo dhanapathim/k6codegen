@@ -1,16 +1,17 @@
-export const k6Template = `
-The Swagger content is {swaggerJson}
+
+export const K6LoadPrompt = `
+The Swagger content is swaggerJson
 You are an expert in K6 load testing. Generate a complete and production-ready K6 script in ES6 that satisfies the following:
 
 1. Include the options section with stages and thresholds:
-   - scenarios: {stages}
-   - thresholds: {thresholds}
+   - scenarios: stages
+   - thresholds: thresholds
 
 2. The default function must follow this *iteration flow* (strictly follow each step):
-   {iteration_definition}
+   iteration_definition
 
 3. The iteration should invoke only the provided REST APIs in the same order they appear in manualSwaggerPaths:
-   - Swagger paths: {swaggerPaths}
+   - Swagger paths: swaggerPaths
    - Each API call should use:
      - requestBody, headers, and query parameters derived from Swagger Content.
      - Validate responses with K6 checks.
@@ -18,7 +19,8 @@ You are an expert in K6 load testing. Generate a complete and production-ready K
      - Gracefully handle errors and increment error counters per API.
 
 4. Include a handleSummary function that generates both text and HTML summaries:
-   - Output path: {htmlReportPath}
+   - Output path: htmlReportPath
+    - HTML report name: htmlReportName
 
 5. Code guidelines:
    - No switch or if statements (use declarative constructs).
@@ -38,3 +40,7 @@ You are an expert in K6 load testing. Generate a complete and production-ready K
      createPostRes.json().data.documentId.
 
 `;
+
+
+
+

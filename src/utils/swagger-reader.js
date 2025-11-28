@@ -1,12 +1,12 @@
 import fs from "fs";
 import path from "path";
 import YAML from "yaml";
-import logger from "../utils/logger.js";
+import logger from "./logger.js";
 
 export function readSwaggerFile(filePath) {
-  if (!filePath) throw new logger.Error("Swagger file path is missing.");
+  if (!filePath) throw Error("Swagger file path is missing.");
   const resolvedPath = path.resolve(filePath);
-  if (!fs.existsSync(resolvedPath)) throw new logger.Error(`Swagger file not found: ${resolvedPath}`);
+  if (!fs.existsSync(resolvedPath)) throw new Error(`Swagger file not found: ${resolvedPath}`);
 
   const rawData = fs.readFileSync(resolvedPath, "utf-8");
   const ext = path.extname(resolvedPath).toLowerCase();
@@ -19,6 +19,6 @@ export function readSwaggerFile(filePath) {
     return JSON.parse(rawData);
   }
 
-  throw new logger.Error(`Unsupported file type: ${ext}. Use .yaml, .yml, or .json`);
+  throw new Error(`Unsupported file type: ${ext}. Use .yaml, .yml, or .json`);
 }
 
