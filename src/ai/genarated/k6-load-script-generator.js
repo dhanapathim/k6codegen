@@ -108,7 +108,7 @@ export class K6LoadScriptGenerator extends LoadScriptGenerator {
     const outputFile = process.env.OUTPUT_LOAD_FILE_NAME || "generated_k6_load_script.js";
 
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
-    const outputPath = `${outputDir}/${outputFile}`;
+    const outputPath = `${outputDir}/${outputFile}.js`;
     fs.writeFileSync(outputPath, Script.content, "utf-8");
     const cleaner = new CodeFenceCleaner(outputDir, [".js", ".ts", ".java"]);
     cleaner.clean();

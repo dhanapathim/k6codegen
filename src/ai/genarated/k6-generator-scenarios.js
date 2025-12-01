@@ -190,7 +190,7 @@ export class K6ScenarioGenerator extends ScenarioGenerator {
 
     // ✅ Step 9: Write output file
     const outputDir = process.env.OUTPUT_DIR || "./generated";
-    const outputFile = process.env.OUTPUT_FILE || "generated_script";
+    const outputFile = process.env.OUTPUT_SCENARIO_FILE || "generated_script";
     const outputPath = `${outputDir}/${outputFile}.js`;
 
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
