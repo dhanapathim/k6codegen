@@ -38,8 +38,8 @@ You are an expert in K6 load testing. Generate a complete and production-ready K
    - no markdown or blockquotes. Exclude \`\`\`javascript \`\`\`
    - Don't use json expression language.Example *createPostRes.json('data.documentId')* Instead use
      createPostRes.json().data.documentId.
-
-`;
+   - do not include any explanations or comments outside of the code itself.
+   `;
 
 
 
