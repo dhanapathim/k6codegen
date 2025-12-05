@@ -13,7 +13,7 @@ This is an Accelerator that is used to generate K6 code based on the human instr
 - Run `npm run dev` if you are running as a developer. If you are executing it on a server use `npm run start`.
 
 ## Mandatory varibales in .env file
-- LLM_PROVIDER=openai
+- LLM_PROVIDER=openai (or) google (or) ollama
 - LLM_MODEL=<Specify Provider Model>
 - GOOGLE_API_KEY (or) OPENAI_API_KEY (or) OLLAMA_BASE_URL=<api-key>
 - OUTPUT_DIR=<path where the code to be generated>
@@ -22,7 +22,7 @@ This is an Accelerator that is used to generate K6 code based on the human instr
 - LOG_DIR=<path where the logs to be stored>
 - LOG_MAX_SIZE=<Sets the maximum size of a single log file>
 - LOG_MAX_FILES=<Sets the maximum files of a single log file>
-- BASE_PATH=D:<Set the where Swagger file Present>
+- BASE_PATH=<Set the where Swagger file Present>
 
 
 
