@@ -1,4 +1,4 @@
-import { createChatModel } from "../genai-client.js";
+import { createChatModel } from "../createChatModel.js";
 import { k6Template } from "../prompts/k6-scenarios-load-prompt.js";
 import { PromptTemplate } from "@langchain/core/prompts";
 import logger from "../../utils/logger.js";

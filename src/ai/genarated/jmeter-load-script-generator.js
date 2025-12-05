@@ -1,4 +1,4 @@
-import { createChatModel } from "../genai-client.js";
+import { createChatModel } from "../createChatModel.js";
 import { JMeterTemplate } from "../prompts/jmeter-load-promt.js";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { LoadScriptGenerator } from "./load-script-generator.js";
