@@ -1,5 +1,5 @@
 import { createChatModel } from "../createChatModel.js";
-import { k6Template } from "../prompts/k6-scenarios-load-prompt.js";
+import { basek6prompt } from "../prompts/base-k6-prompt.js";
 import { PromptTemplate } from "@langchain/core/prompts";
 import logger from "../../utils/logger.js";
 import fs from "fs";
@@ -8,7 +8,7 @@ import dotenv from "dotenv";
 import { LoadScriptGenerator } from "./load-script-generator.js";
 import { readSwaggerFile } from "../../utils/swagger-reader.js";
 import { CodeFenceCleaner } from "../../utils/code-cleaner.js";
-
+import { resolveFileExtension } from "../resolvers/extensionResolver.js";
 
 dotenv.config();
 
@@ -20,8 +20,10 @@ export class K6LoadScriptGenerator extends LoadScriptGenerator {
   async generateLoadScript(data) {
     const { scenarios, commonFields } = data;
 
+    const language = process.env.K6_LANGUAGE;
+
     const tool = data.commonFields.tool;
-  // Create chat model with system prompt for JMeter load script generation
+    // Create chat model with system prompt for JMeter load script generation
     const chat = createChatModel({ tool, mode: "load" });
 
     let swaggerFile;
@@ -75,8 +77,11 @@ export class K6LoadScriptGenerator extends LoadScriptGenerator {
       logger.info(`🔧 Tool specified: ${tool}`);
     }
 
+
+    const fileExtension = resolveFileExtension(language);
+
     const prompt = new PromptTemplate({
-      template: k6Template,
+      template: basek6prompt,
       inputVariables: [
         "stages",
         "thresholds",
@@ -85,6 +90,7 @@ export class K6LoadScriptGenerator extends LoadScriptGenerator {
         "htmlReportName",
         "iteration_definition",
         "swaggerJson",
+        "language",
       ],
     });
 
@@ -96,6 +102,7 @@ export class K6LoadScriptGenerator extends LoadScriptGenerator {
       htmlReportName,
       swaggerJson,
       htmlReportPath,
+      language,
     });
 
     logger.info("🧠 Sending prompt to Gemini model...");
@@ -105,10 +112,10 @@ export class K6LoadScriptGenerator extends LoadScriptGenerator {
     logger.info(Script.content);
 
     const outputDir = process.env.OUTPUT_DIR || "./generated";
-    const outputFile = process.env.OUTPUT_LOAD_FILE_NAME || "generated_k6_load_script.js";
+    const outputFile = process.env.OUTPUT_LOAD_FILE_NAME || "generated_k6_load_script";
 
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
-    const outputPath = `${outputDir}/${outputFile}.js`;
+    const outputPath = `${outputDir}/${outputFile}${fileExtension}`;
     fs.writeFileSync(outputPath, Script.content, "utf-8");
     const cleaner = new CodeFenceCleaner(outputDir, [".js", ".ts", ".java"]);
     cleaner.clean();

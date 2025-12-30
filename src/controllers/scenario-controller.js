@@ -1,6 +1,6 @@
 import logger from "../utils/logger.js";
 import fs from "fs";
-import { loadtoolHandlers, scenariotoolHandlers } from "./toolHandlers.js";
+import { loadtoolHandlers } from "./toolHandlers.js";
 import path from "path";
 import dotenv from "dotenv";
 
