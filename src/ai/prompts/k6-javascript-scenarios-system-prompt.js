@@ -51,8 +51,31 @@ You are an expert K6 performance engineer. Generate a **production-ready K6 Java
   - import http from 'k6/http';
    - import {{'{{'}} check,group, sleep {{'}}'}} from 'k6';
    - import {{'{{'}} htmlReport {{'}}'}} from 'https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js';
-   - import {{'{{'}} textSummary {{'}}'}} from 'https://jslib.k6.io/k6-summary/0.0.1/index.js';
-9. Guardrails
+   - import { textSummary } from "https://jslib.k6.io/k6-summary/0.0.1/index.js";
+
+
+9. MANDATORY IMPORTS (STRICT)
+The generated k6 script MUST use ONLY the following imports.
+- textSummary MUST be imported ONLY from:
+  import { textSummary } from "https://jslib.k6.io/k6-summary/0.0.1/index.js";
+
+- htmlReport MUST be imported ONLY from:
+  import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js";
+
+- It is STRICTLY FORBIDDEN to import textSummary from:
+  - k6-utils
+  - k6/http
+  - any other module
+
+- k6-utils MUST NOT be used for summaries.
+
+VALID IMPORT EXAMPLE (EXACT):
+import { textSummary } from "https://jslib.k6.io/k6-summary/0.0.1/index.js";
+import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js";
+
+If any other import source is used for textSummary, the output is INVALID.
+
+10. Guardrails
 - No markdown or blockquotes. Exclude \`\`\`javascript \`\`\`
 - Don't use json expression language. Example *createPostRes.json('data.documentId')* Instead use
   createPostRes.json().data.documentId.
@@ -61,4 +84,6 @@ You are an expert K6 performance engineer. Generate a **production-ready K6 Java
 - Use check() for assertions
 - Use sleep() for pacing
 - Use ONE shared test function per scenario
+- Do not use the fllowing import
+  import { textSummary } from 'https://jslib.k6.io/k6-utils/1.0.0/index.js';
 `;
