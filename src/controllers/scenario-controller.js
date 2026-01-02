@@ -1,10 +1,13 @@
 import logger from "../utils/logger.js";
 import fs from "fs";
-import { loadtoolHandlers } from "./toolHandlers.js";
+import { loadtoolHandlers,scenariotoolHandlers } from "./toolHandlers.js";
 import path from "path";
 import dotenv from "dotenv";
+import { PROJECT_LANGUAGE_REGISTRY } from "./project-set-up/projectLanguageRegistry.js";
+import { normalizeLanguage } from "./project-set-up/normalizeLanguage.js";
 
 dotenv.config();
+
 
 function validateSwaggerFile(swaggerFilePath) {
 
@@ -118,3 +121,24 @@ export const createScenario = async (req, res) => {
     return res.status(500).json({ error: "Failed to generate script" });
   }
 };
+
+export function Projectsetup(req, res, next) {
+  try {
+    const rawLanguage = process.env.K6_LANGUAGE;
+    const language = normalizeLanguage(rawLanguage);
+
+    const Initializer = PROJECT_LANGUAGE_REGISTRY[language];
+
+    if (!Initializer) {
+      throw new Error(
+        `❌ Unsupported PROJECT_LANGUAGE '${rawLanguage}'. Supported: ${Object.keys(PROJECT_LANGUAGE_REGISTRY).join(", ")}`
+      );
+    }
+
+    new Initializer().runAll();
+
+    next(); // ✅ now valid
+  } catch (error) {
+    next(error);
+  }
+}

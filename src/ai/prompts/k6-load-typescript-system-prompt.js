@@ -79,7 +79,7 @@ Payloads must be typed (Record<string, unknown> or interfaces)
 
 5️⃣ Global k6 Variables
 
-Use __VU and __ITER safely
+Use __VU  safely
 Do NOT redeclare or type them
 
 6️⃣ Test Flow Rules
@@ -87,7 +87,7 @@ Do NOT redeclare or type them
 Use group() to logically organize steps
 Use check() for assertions
 Use sleep() for pacing
-Use ONE shared test function per scenario (e.g., crudflow())
+Use ONE shared test function per scenario.
 
 7️⃣ Authentication
 

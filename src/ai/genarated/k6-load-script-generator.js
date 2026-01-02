@@ -9,6 +9,7 @@ import { LoadScriptGenerator } from "./load-script-generator.js";
 import { readSwaggerFile } from "../../utils/swagger-reader.js";
 import { CodeFenceCleaner } from "../../utils/code-cleaner.js";
 import { resolveFileExtension } from "../resolvers/extensionResolver.js";
+import WorkflowManager from "../../utils/WorkflowManager.js";
 
 dotenv.config();
 
@@ -111,11 +112,124 @@ export class K6LoadScriptGenerator extends LoadScriptGenerator {
     logger.info("------------Generated K6 Script:-------------");
     logger.info(Script.content);
 
-    const outputDir = process.env.OUTPUT_DIR || "./generated";
+    const outputDir = path.resolve(process.env.PROJECT_BASE_PATH, process.env.PROJECT_NAME);
     const outputFile = process.env.OUTPUT_LOAD_FILE_NAME || "generated_k6_load_script";
 
+    const scriptsDir = path.join(outputDir, "src");
+    if (!fs.existsSync(scriptsDir)) {
+      fs.mkdirSync(scriptsDir, { recursive: true });
+    }
+    const workflow = new WorkflowManager(outputDir);
+    workflow.ensureWorkflow(
+      "k6.yml",
+      `name: K6 Load Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      scriptName:
+        description: "Select k6 script from src/ folder (example: login_test.js)"
+        required: true
+        type: string
+
+jobs:
+  k6-load-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # =========================
+      # Install k6
+      # =========================
+      - name: Install k6
+        run: |
+          sudo apt update
+          sudo apt install -y gnupg ca-certificates
+          curl -s https://dl.k6.io/key.gpg | sudo apt-key add -
+          echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt update
+          sudo apt install -y k6
+          k6 version
+
+      # =========================
+      # Detect k6 scripts
+      # =========================
+      - name: Detect k6 src
+        id: detect
+        run: |
+          SRC=$(find src -type f -name "*.js" -printf "%f\\n")
+          [ -z "$src" ] && echo "❌ No src found" && exit 1
+
+          echo "src<<EOF" >> $GITHUB_OUTPUT
+          echo "$SRC" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      # =========================
+      # Validate selection
+      # =========================
+      - name: Validate selected script
+        run: |
+          if ! echo "\${{ steps.detect.outputs.src }}" | grep -qx "\${{ github.event.inputs.scriptName }}"; then
+            echo "❌ Invalid script"
+            exit 1
+          fi
+
+      # =========================
+      # Run k6 (Dashboard + Summary)
+      # =========================
+      - name: Run selected k6 script
+        id: runk6
+        env:
+          K6_WEB_DASHBOARD: "true"
+          CI: "true"
+        run: |
+          FILE="scripts/\${{ github.event.inputs.scriptName }}"
+          NAME="\${{ github.event.inputs.scriptName }}"
+          NAME="\${NAME%.js}"
+          TS=$(date +"%Y-%m-%d_%H-%M-%S")
+
+          OUTDIR="\${NAME}_\${TS}"
+          mkdir -p "\$OUTDIR"
+
+          echo "outdir=\$OUTDIR" >> \$GITHUB_OUTPUT
+
+          echo "▶ Running \$FILE"
+
+          K6_OUTDIR="\$OUTDIR" \\
+          K6_RUN_NAME="\$NAME" \\
+          K6_RUN_TS="\$TS" \\
+          K6_WEB_DASHBOARD_EXPORT="\$OUTDIR/\${NAME}.html" \\
+          k6 run "\$FILE" \\
+            --out json="\$OUTDIR/results.json" \\
+            --out csv="\$OUTDIR/results.csv" \\
+            2>&1 | tee "\$OUTDIR/k6.log"
+
+      # =========================
+      # Verify outputs
+      # =========================
+      - name: Verify generated files
+        if: always()
+        run: |
+          echo "Generated files:"
+          ls -lh "\${{ steps.runk6.outputs.outdir }}"
+
+      # =========================
+      # Upload artifact
+      # =========================
+      - name: Upload k6 output folder
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-output-\${{ steps.runk6.outputs.outdir }}
+          path: \${{ steps.runk6.outputs.outdir }}
+          if-no-files-found: warn
+`
+    );
+
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
-    const outputPath = `${outputDir}/${outputFile}${fileExtension}`;
+    const outputPath = `${scriptsDir}/${outputFile}${fileExtension}`;
     fs.writeFileSync(outputPath, Script.content, "utf-8");
     const cleaner = new CodeFenceCleaner(outputDir, [".js", ".ts", ".java"]);
     cleaner.clean();

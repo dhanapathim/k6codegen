@@ -1,9 +1,9 @@
 
 # K6CodeGen
 
-This is an Accelerator that is used to generate K6 code based on the human instructions. This generates the code for the following cases:-
+This is an Accelerator that is used to generate K6 code based on the human instructions. This generates the code for the following cases in JavaScript and Typescript:-
 
-- Load Testing(with scenarios 50%, 100%, 300% and 1000%)
+- Load Testing(with scenarios 50%, 100%, 300% and 1000%) 
 - Scenarios (n number of scenarios with different exec methods)
 
 ## Installation
@@ -16,14 +16,15 @@ This is an Accelerator that is used to generate K6 code based on the human instr
 - LLM_PROVIDER=openai (or) google (or) ollama
 - LLM_MODEL=<Specify Provider Model>
 - GOOGLE_API_KEY (or) OPENAI_API_KEY (or) OLLAMA_BASE_URL=<api-key>
-- OUTPUT_DIR=<path where the code to be generated>
+- PROJECT_BASE_PATH=<path where the code to be generated>
+- PROJECT_NAME =<name of the Project>
 - OUTPUT_SCENARIO_FILE=<name of the file with which the code is created>
 - OUTPUT_LOAD_FILE_NAME=<name of the file with which the code is created>
 - LOG_DIR=<path where the logs to be stored>
 - LOG_MAX_SIZE=<Sets the maximum size of a single log file>
 - LOG_MAX_FILES=<Sets the maximum files of a single log file>
 - BASE_PATH=<Set the where Swagger file Present>
-
+- K6_LANGUAGE=<Set Language javascript / Typescript >
 
 
 ## Generating K6 for load test
@@ -96,72 +97,6 @@ Hit the url `/scenarios/load` with method type `POST`. The JSON body to send is 
       ]
     }
   }
-}
-
-```
-
-## Generating JMeter for load test
-Hit the url `/scenarios/load` with method type `POST`. The JSON body to send is as follows:
-
-```JSON
-{
-    "scenarios": [
-        {
-            "threads": 50,
-            "rampUp": 10,
-            "duration": 50,
-            "name": "TG_50_percent",
-            "delay": 0
-        },
-        {
-            "threads": 100,
-            "rampUp": 10,
-            "duration": 50,
-            "name": "TG_100_percent",
-            "delay": 50
-        },
-        {
-            "threads": 200,
-            "rampUp": 10,
-            "duration": 50,
-            "name": "TG_200_percent",
-            "delay": 100
-        },
-        {
-            "threads": 1000,
-            "rampUp": 20,
-            "duration": 50,
-            "name": "TG_1000_percent",
-            "delay": 150
-        }
-    ],
-    "commonFields": {
-        "tool": "jmeter",
-        "swaggerFile": "pet.yaml",
-        "userInstructions": "Adds a new pet using POST /pet. Fetch pet details using GET /pet/{petId}. Update pet using PUT /pet. Delete pet using DELETE /pet/{petId}. Fetch pets by status using GET /pet/findByStatus.",
-        "apis": [
-            {
-                "method": "POST",
-                "path": "/pet"
-            },
-            {
-                "method": "GET",
-                "path": "/pet/{petId}"
-            },
-            {
-                "method": "PUT",
-                "path": "/pet"
-            },
-            {
-                "method": "DELETE",
-                "path": "/pet/{petId}"
-            },
-            {
-                "method": "GET",
-                "path": "/pet/findByStatus"
-            }
-        ]
-    }
 }
 
 ```
@@ -317,7 +252,7 @@ Hit the url `/scenarios/` with method type `POST`. The JSON body to send is as f
 }
 
 ```
-## Generating JMeter for Various scenarios
+
 Hit the url `/scenarios/` with method type `POST`. The JSON body to send is as follows:
 
 ```JSON

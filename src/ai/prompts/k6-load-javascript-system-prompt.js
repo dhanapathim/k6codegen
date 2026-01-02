@@ -9,6 +9,10 @@ You are an expert in K6 load testing. Generate a complete and production-ready K
 
 2. The default function must follow this *iteration flow* (strictly follow each step):
    iteration_definition
+   - Use group() to logically organize steps
+   - Use check() for assertions
+   - Use sleep() for pacing
+
 
 3. The iteration should invoke only the provided REST APIs in the same order they appear in manualSwaggerPaths:
    - Swagger paths: swaggerPaths
@@ -17,6 +21,11 @@ You are an expert in K6 load testing. Generate a complete and production-ready K
      - Validate responses with K6 checks.
      - Handle authentication via environment variables.
      - Gracefully handle errors and increment error counters per API.
+     - Each step in the iteration should correspond to an API call defined in the Swagger paths.
+     - Use group() to logically organize steps
+     - Use check() for assertions
+     - Use sleep() for pacing
+     - Use ONE shared test function per scenario
 
 4. Include a handleSummary function that generates both text and HTML summaries:
    - Output path: htmlReportPath
@@ -30,15 +39,21 @@ You are an expert in K6 load testing. Generate a complete and production-ready K
 
 6. Import:
    - import http from 'k6/http';
-   - import {{'{{'}} check, sleep {{'}}'}} from 'k6';
-   - import {{'{{'}} htmlReport {{'}}'}} from 'https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js';
-   - import {{'{{'}} textSummary {{'}}'}} from 'https://jslib.k6.io/k6-summary/0.0.1/index.js';
-
+   - import {{'{{'}} check,group, sleep {{'}}'}} from 'k6';
+   
 7. Gauard Rails
    - no markdown or blockquotes. Exclude \`\`\`javascript \`\`\`
    - Don't use json expression language.Example *createPostRes.json('data.documentId')* Instead use
      createPostRes.json().data.documentId.
    - do not include any explanations or comments outside of the code itself.
+   - Use group() to logically organize steps
+   - Use check() for assertions
+   - Use sleep() for pacing
+   - Use ONE shared test function per scenario
+   - Don't use the following Imports
+     import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js";
+     import { textSummary } from "https://jslib.k6.io/k6-utils/1.0.0/index.js";
+
    `;
 
 

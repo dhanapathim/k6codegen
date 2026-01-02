@@ -1,9 +1,10 @@
 import express from "express";
-import { createLoad, createScenario } from "../controllers/scenario-controller.js";
+import { createLoad, createScenario, Projectsetup } from "../controllers/scenario-controller.js";
+
 
 const router = express.Router();
 
-router.post("/load", createLoad);
-router.post("/", createScenario);
+router.post("/load",Projectsetup, createLoad);
+router.post("/", Projectsetup,createScenario);
 
 export default router;
