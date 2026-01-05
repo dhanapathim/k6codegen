@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 
 export class CodeFenceCleaner {
-  constructor(rootFolder, extensions = [".js", ".ts", ".java"]) {
+  constructor(rootFolder, extensions = [".js", ".ts", ".java", ".json"]) {
     this.rootFolder = rootFolder;
     this.extensions = extensions;
 
@@ -16,6 +16,7 @@ export class CodeFenceCleaner {
       /^```java$/,                // ```java
       /^```python$/,              // ```python (optional)
       /^```javascripts$/,         // your typo case
+      /^```json$/,                // ```json
     ];
 
     // End fence always: ```

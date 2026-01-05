@@ -28,7 +28,7 @@ export class K6LoadScriptGenerator extends LoadScriptGenerator {
     const chat = createChatModel({ tool, mode: "load" });
 
     let swaggerFile;
-    const fullPath = path.join(process.env.BASE_PATH, data.commonFields.swaggerFile);
+    const fullPath = path.join(process.env.SWAGGER_BASE_PATH, data.commonFields.swaggerFile);
 
     try {
       swaggerFile = path.resolve(fullPath);

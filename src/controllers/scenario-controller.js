@@ -1,10 +1,10 @@
 import logger from "../utils/logger.js";
 import fs from "fs";
-import { loadtoolHandlers,scenariotoolHandlers } from "./toolHandlers.js";
+import { loadtoolHandlers, scenariotoolHandlers } from "./toolHandlers.js";
 import path from "path";
 import dotenv from "dotenv";
-import { PROJECT_LANGUAGE_REGISTRY } from "./project-set-up/projectLanguageRegistry.js";
-import { normalizeLanguage } from "./project-set-up/normalizeLanguage.js";
+import { PROJECT_LANGUAGE_REGISTRY } from "./k6-project-setup/projectLanguageRegistry.js";
+import { normalizeLanguage } from "./k6-project-setup/normalizeLanguage.js";
 
 dotenv.config();
 
@@ -32,7 +32,7 @@ export const createLoad = async (req, res) => {
     logger.info(`Creating scenario with data: ${JSON.stringify(data, null, 2)}`);
 
     // Validate swagger path
-    const fullPath = path.join(process.env.BASE_PATH, data.commonFields.swaggerFile);
+    const fullPath = path.join(process.env.SWAGGER_BASE_PATH, data.commonFields.swaggerFile);
     const swaggerPath = validateSwaggerFile(path.resolve(fullPath));
     logger.info(`✅ Swagger file found at: ${swaggerPath}`);
 
@@ -71,16 +71,13 @@ export const createScenario = async (req, res) => {
     logger.info(`Creating scenario with data: ${JSON.stringify(data, null, 2)}`);
     logger.info(`🔧 Selected tool: ${tool}`);
 
-    // -------------------------------
-    //  Validate Swagger file paths
-    // -------------------------------
-
+    // Validate all swagger file paths in scenarios
     const swaggerFiles = [
       ...new Set(
         data.scenarios
           .map((sc) => sc.swaggerFile)
           .filter(Boolean)
-          .map((file) => path.resolve(process.env.BASE_PATH, file))
+          .map((file) => path.resolve(process.env.SWAGGER_BASE_PATH, file))
       ),
     ];
 
@@ -122,7 +119,7 @@ export const createScenario = async (req, res) => {
   }
 };
 
-export function Projectsetup(req, res, next) {
+export function projectSetup(req, res, next) {
   try {
     const rawLanguage = process.env.K6_LANGUAGE;
     const language = normalizeLanguage(rawLanguage);

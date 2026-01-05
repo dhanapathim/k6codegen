@@ -1,15 +1,15 @@
 {
-  "name": "backend",
+  "name": "codegen-loadperf",
   "version": "1.0.0",
-  "description": "This is a module meant to generate K6 scripts using Gen AI code.",
-  "main": "index.js",
+  "description": "This project automatically generates complete load testing projects and scripts from Swagger files and human-readable instructions.",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/server.js",
     "start": "node src/server.js"
   },
   "keywords": [
-    "k6"
+    "k6","JMeter","Performance Testing","Codegen","Load Testing"
   ],
   "author": "Dhanapathi Marepalli, Sarath Nidumolu",
   "license": "ISC",

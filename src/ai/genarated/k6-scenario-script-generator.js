@@ -74,7 +74,7 @@ export class K6ScenarioGenerator extends ScenarioGenerator {
         scenarios
           .map((s) => s.swaggerFile)
           .filter(Boolean)
-          .map((file) => path.resolve(process.env.BASE_PATH, file))
+          .map((file) => path.resolve(process.env.SWAGGER_BASE_PATH, file))
       ),
     ];
 
@@ -195,13 +195,13 @@ export class K6ScenarioGenerator extends ScenarioGenerator {
     logger.info(Script.content);
 
     // ✅ Step 9: Write output file
-    const outputDir = path.resolve( process.env.PROJECT_BASE_PATH,process.env.PROJECT_NAME);
+    const outputDir = path.resolve(process.env.PROJECT_BASE_PATH, process.env.PROJECT_NAME);
     const outputFile = process.env.OUTPUT_SCENARIO_FILE || "generated_script";
     const scriptsDir = path.join(outputDir, "src");
     if (!fs.existsSync(scriptsDir)) {
-    fs.mkdirSync(scriptsDir, { recursive: true });
-    
-  }
+      fs.mkdirSync(scriptsDir, { recursive: true });
+
+    }
     const outputPath = `${scriptsDir}/${outputFile}${fileExtension}`;
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
 

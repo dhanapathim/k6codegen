@@ -1,7 +1,4 @@
-import {
-  K6_LOAD_PROMPT_REGISTRY,
-  K6_Scenario_PROMPT_REGISTRY
-} from "../../ai/prompts/PromptRegistry.js";
+import {K6_LOAD_PROMPT_REGISTRY,K6_Scenario_PROMPT_REGISTRY} from "../../ai/prompts/PromptRegistry.js";
 
 /**
  * Normalize language input to canonical key
