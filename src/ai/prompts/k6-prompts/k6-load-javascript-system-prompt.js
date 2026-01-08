@@ -13,7 +13,6 @@ You are an expert in K6 load testing. Generate a complete and production-ready K
    - Use check() for assertions
    - Use sleep() for pacing
 
-
 3. The iteration should invoke only the provided REST APIs in the same order they appear in manualSwaggerPaths:
    - Swagger paths: swaggerPaths
    - Each API call should use:
@@ -43,7 +42,6 @@ You are an expert in K6 load testing. Generate a complete and production-ready K
    - import {{'{{'}} htmlReport {{'}}'}} from 'https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js';
    - import { textSummary } from "https://jslib.k6.io/k6-summary/0.0.1/index.js";
 
-
 7. MANDATORY IMPORTS (STRICT)
   The generated k6 script MUST use ONLY the following imports.
 
@@ -65,7 +63,6 @@ import { htmlReport } from "https://raw.githubusercontent.com/benc-uk/k6-reporte
 
 If any other import source is used for textSummary, the output is INVALID.
 
-   
 8. Gauard Rails
    - no markdown or blockquotes. Exclude \`\`\`javascript \`\`\`
    - Don't use json expression language.Example *createPostRes.json('data.documentId')* Instead use

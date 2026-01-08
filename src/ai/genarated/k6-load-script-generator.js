@@ -1,5 +1,5 @@
-import { createChatModel } from "../createChatModel.js";
-import { basek6prompt } from "../prompts/base-k6-prompt.js";
+import { createChatModel } from "../create-chatmodel.js";
+import { basek6prompt } from "../prompts/k6-prompts/base-k6-prompt.js";
 import { PromptTemplate } from "@langchain/core/prompts";
 import logger from "../../utils/logger.js";
 import fs from "fs";
@@ -9,7 +9,7 @@ import { LoadScriptGenerator } from "./load-script-generator.js";
 import { readSwaggerFile } from "../../utils/swagger-reader.js";
 import { CodeFenceCleaner } from "../../utils/code-cleaner.js";
 import { resolveFileExtension } from "../resolvers/extensionResolver.js";
-import WorkflowManager from "../../utils/WorkflowManager.js";
+import WorkflowManager from "../../utils/workflow-manager.js";
 
 dotenv.config();
 

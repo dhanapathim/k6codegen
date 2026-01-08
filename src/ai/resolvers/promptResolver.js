@@ -1,20 +1,10 @@
 import {K6_LOAD_PROMPT_REGISTRY,K6_Scenario_PROMPT_REGISTRY} from "../../ai/prompts/PromptRegistry.js";
+import { normalizeLanguage } from "./languageNormalizer.js";
 
 /**
  * Normalize language input to canonical key
  */
-const normalizeLanguage = (language) => {
-  if (!language) return "js";
 
-  const map = {
-    js: "js",
-    javascript: "js",
-    ts: "ts",
-    typescript: "ts"
-  };
-
-  return map[language.toLowerCase()];
-};
 
 const resolveFromRegistry = (registry, language, label) => {
   const normalized = normalizeLanguage(language);

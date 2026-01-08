@@ -1,9 +1,9 @@
 import logger from "../utils/logger.js";
 import fs from "fs";
-import { loadtoolHandlers, scenariotoolHandlers } from "./toolHandlers.js";
+import { loadtoolHandlers, scenariotoolHandlers } from "./tool-handlers.js";
 import path from "path";
 import dotenv from "dotenv";
-import { PROJECT_LANGUAGE_REGISTRY } from "./k6-project-setup/projectLanguageRegistry.js";
+import { PROJECT_LANGUAGE_REGISTRY } from "./k6-project-setup/project-language-registry.js";
 import { normalizeLanguage } from "./k6-project-setup/normalizeLanguage.js";
 
 dotenv.config();
@@ -40,7 +40,7 @@ export const createLoad = async (req, res) => {
     const handler = loadtoolHandlers[tool];
 
     if (!handler) {
-      return res.status(400).json({ message: "❌ Invalid tool selected" });
+      return res.status(400).json({ message: " Invalid tool selected" });
     }
 
     // Call selected tool generator

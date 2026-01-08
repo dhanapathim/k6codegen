@@ -1,5 +1,7 @@
 // Import all your prompts
 import { resolveK6loadPrompt, resolveK6ScenarioPrompt } from "../resolvers/promptResolver.js";
+import { JMeterLoadPrompt } from "./jmeter-prompts/jmeter-load-system-prompt.js";
+import { JMeterScenarioPrompt } from "./jmeter-prompts/jmeter-scenarios-system-prompt.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -11,5 +13,10 @@ export const PromptStrategy = {
     load: resolveK6loadPrompt(language),
     Scenarios: resolveK6ScenarioPrompt(language)
 
+  },
+  jmeter: {
+    load: JMeterLoadPrompt,
+    scenario: JMeterScenarioPrompt,
   }
+
 };

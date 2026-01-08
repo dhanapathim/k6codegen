@@ -1,5 +1,5 @@
-import { createChatModel } from "../createChatModel.js";
-import { k6Template } from "../prompts/k6-base-scenarios-prompt.js";
+import { createChatModel } from "../create-chatmodel.js";
+import { k6Template } from "../prompts/k6-prompts/k6-base-scenarios-prompt.js";
 import { PromptTemplate } from "@langchain/core/prompts";
 import logger from "../../utils/logger.js";
 import fs from "fs";
@@ -8,7 +8,7 @@ import dotenv from "dotenv";
 import { ScenarioGenerator } from "./scenario-generator.js";
 import { readSwaggerFile } from "../../utils/swagger-reader.js";
 import { CodeFenceCleaner } from "../../utils/code-cleaner.js";
-import WorkflowManager from "../../utils/WorkflowManager.js";
+import WorkflowManager from "../../utils/workflow-manager.js";
 import { resolveFileExtension } from "../resolvers/extensionResolver.js";
 
 

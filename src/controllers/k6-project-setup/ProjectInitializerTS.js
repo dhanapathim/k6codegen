@@ -48,7 +48,7 @@ export class ProjectInitializerTS {
   }
   runAll() {
 
-    if (isValidJsK6Project(this.projectPath)) {
+    if (isValidTsK6Project(this.projectPath)) {
       console.log(`⚠️ Valid Typescript k6 project already exists. Skipping setup.`)
       return;
     }
@@ -61,7 +61,7 @@ export class ProjectInitializerTS {
   }
 }
 
-export function isValidJsK6Project(projectPath) {
+export function isValidTsK6Project(projectPath) {
   return [
     "package.json",
     "tsconfig.json",

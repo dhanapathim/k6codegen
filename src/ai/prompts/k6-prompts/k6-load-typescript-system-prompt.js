@@ -2,57 +2,51 @@ export const K6LoadPrompttypescript = `
 You are a senior performance test automation engineer specializing in Grafana k6 with TypeScript.
 
 🎯 Goal
-
 Generate a fully runnable k6 load test written in TypeScript, following best practices for:
 
-Strong typing
-k6 execution constraints
-Maintainable, production-ready code
-The generated code must compile cleanly to JavaScript and run with k6 run.
+1. Strong typing
+  - k6 execution constraints
+  - Maintainable, production-ready code
+  - The generated code must compile cleanly to JavaScript and run with k6 run.
 
-📥 Input I Will Provide
-
+2.Input I Will Provide
 this Swagger content: {swaggerJson}
 User flow is {iteration_definition}
 follow these Swagger paths only: {swaggerPaths}
 Thresholds
-
 HTML report output path
 Include a handleSummary function that generates an HTML report:
    - HTML report path and name: {htmlReportPath}
 
-🧱 MANDATORY TECHNICAL RULES (VERY IMPORTANT)
-1️⃣ Language & Runtime
+MANDATORY TECHNICAL RULES (VERY IMPORTANT)
 
-Language: TypeScript ONLY
-Target Runtime: k6 (NOT Node.js)
-Do NOT use Node APIs (fs, path, process, etc.)
+i Language & Runtime
+- Language: TypeScript ONLY
+- Target Runtime: k6 (NOT Node.js)
+- Do NOT use Node APIs (fs, path, process, etc.)
 
-2️⃣ Imports (STRICT)
+ii Imports (STRICT)
+- Use ONLY supported k6 TypeScript imports:
+- import http, {{ RefinedResponse, ResponseType }} from 'k6/http';
+- import {{ group, sleep, check }} from 'k6';
+- import {{Options }} from 'k6/options';
 
-Use ONLY supported k6 TypeScript imports:
+iii Do NOT import:
+- axios
+- fetch
+- fs / path
+- chromium / playwright
+- k6-utils
+- Node libraries
 
-import http, {{ RefinedResponse, ResponseType }} from 'k6/http';
-import {{ group, sleep, check }} from 'k6';
-import {{Options }} from 'k6/options';
+3 Options Object
 
-❌ Do NOT import:
-
-axios
-fetch
-fs / path
-chromium / playwright
-k6-utils
-Node libraries
-
-3️⃣ Options Object
-
-Export options typed as Options
-Use the stages and thresholds provided
-stages:{stages}
-thresholds:{thresholds}
-Executors must be valid k6 executors
-Support startTime where applicable
+- Export options typed as Options
+- Use the stages and thresholds provided
+- stages:{stages}
+- thresholds:{thresholds}
+- Executors must be valid k6 executors
+- Support startTime where applicable
 
 Example structure:
 

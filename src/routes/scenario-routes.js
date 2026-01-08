@@ -4,7 +4,10 @@ import { createLoad, createScenario, projectSetup } from "../controllers/scenari
 
 const router = express.Router();
 
-router.post("/load", projectSetup, createLoad);
-router.post("/", projectSetup, createScenario);
+router.post("/k6/load", projectSetup, createLoad);
+router.post("/k6", projectSetup, createScenario);
+
+router.post("/Jmeter/load",  createLoad);
+router.post("/Jmeter",  createScenario);
 
 export default router;

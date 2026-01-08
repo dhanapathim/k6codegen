@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import { getSystemPrompt } from "./prompts/systemPromptResolver.js";
-import { LLM_PROVIDERS } from "./llmProviders.js";
+import { LLM_PROVIDERS } from "./llm-providers.js";
 
 export function createChatModel({ tool }) {
   const provider = process.env.LLM_PROVIDER || "google";
