@@ -1,4 +1,4 @@
-import {K6_LOAD_PROMPT_REGISTRY,K6_Scenario_PROMPT_REGISTRY} from "../../ai/prompts/PromptRegistry.js";
+import { K6_LOAD_PROMPT_REGISTRY, K6_Scenario_PROMPT_REGISTRY } from "../../ai/prompts/PromptRegistry.js";
 import { normalizeLanguage } from "./languageNormalizer.js";
 
 /**
@@ -22,7 +22,6 @@ const resolveFromRegistry = (registry, language, label) => {
 
 export const resolveK6loadPrompt = (language) =>
   resolveFromRegistry(K6_LOAD_PROMPT_REGISTRY, language, "K6 Load");
-
 
 export const resolveK6ScenarioPrompt = (language) =>
   resolveFromRegistry(K6_Scenario_PROMPT_REGISTRY, language, "K6 Scenario");
